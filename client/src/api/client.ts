@@ -3,7 +3,9 @@
  * In production (Vercel), set VITE_API_URL to the deployed backend,
  * e.g. https://jeevangrid-api.onrender.com/api
  */
-const BASE_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '') || '/api';
+const BASE_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api';
 
 function currentLanguage(): string {
   try {
