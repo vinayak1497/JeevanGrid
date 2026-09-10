@@ -1,0 +1,40 @@
+# ── Dependencies ─────────────────────────────────────────────
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# ── Builds ───────────────────────────────────────────────────
+dist/
+client/dist/
+server/dist/
+*.tsbuildinfo
+
+# ── Environment & secrets (NEVER commit real credentials) ────
+.env
+.env.local
+.env.*.local
+server/.env
+client/.env
+client/.env.local
+
+# ── Databases (local SQLite dev data) ────────────────────────
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
+server/prisma/dev.db*
+
+# ── Logs ─────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+
+# ── OS / editor ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# ── Deploy / tooling ─────────────────────────────────────────
+.vercel

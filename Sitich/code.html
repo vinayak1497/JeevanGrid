@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"on-secondary-fixed-variant":"#084f4e","surface-bright":"#f9f9ff","surface-tint":"#3b674e","surface-container-low":"#f0f3ff","outline":"#717972","surface-container-lowest":"#ffffff","on-tertiary-fixed-variant":"#174974","surface-container-highest":"#d8e3fb","error-container":"#ffdad6","tertiary-container":"#023d67","on-secondary-fixed":"#00201f","tertiary-fixed-dim":"#9fcafc","on-surface":"#111c2d","surface-dim":"#cfdaf2","on-background":"#111c2d","primary-fixed-dim":"#a1d2b2","inverse-primary":"#a1d2b2","primary-fixed":"#bdeecd","primary-container":"#15432c","on-error":"#ffffff","on-primary-fixed":"#002111","on-surface-variant":"#414943","surface-container":"#e7eeff","secondary-fixed-dim":"#95d1cf","inverse-on-surface":"#ecf1ff","secondary-fixed":"#b1eeeb","secondary-container":"#aeebe8","on-error-container":"#93000a","on-tertiary-fixed":"#001d35","on-primary-container":"#81b092","on-secondary":"#ffffff","inverse-surface":"#263143","tertiary":"#002745","outline-variant":"#c1c9c1","on-tertiary-container":"#7ea8d8","background":"#f9f9ff","surface-variant":"#d8e3fb","tertiary-fixed":"#d0e4ff","surface-container-high":"#dee8ff","error":"#ba1a1a","on-primary-fixed-variant":"#224f37","on-primary":"#ffffff","on-secondary-container":"#2f6c6a","on-tertiary":"#ffffff","surface":"#f9f9ff","primary":"#002c19","secondary":"#2a6866"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"margin-mobile":"1rem","space-sm":"0.75rem","gutter-tablet":"1.5rem","margin-tablet":"2rem","gutter-mobile":"1rem","space-xl":"2rem","container-max":"80rem","space-lg":"1.5rem","space-3xl":"4rem","space-xxs":"0.25rem","space-md":"1rem","space-xs":"0.5rem","margin-desktop":"3rem","space-2xl":"3rem","gutter-desktop":"2rem"},"fontFamily":{"label-sm":["Inter"],"headline-lg":["Plus Jakarta Sans"],"headline-xl-mobile":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"display-lg":["Plus Jakarta Sans"],"label-md":["Inter"],"body-sm":["Inter"],"headline-md":["Plus Jakarta Sans"],"display-lg-mobile":["Plus Jakarta Sans"],"body-md":["Inter"],"label-lg":["Inter"],"headline-xl":["Plus Jakarta Sans"],"body-lg":["Inter"],"code-num":["Inter"]},"fontSize":{"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"600"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-xl-mobile":["26px",{"lineHeight":"34px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-sm":["18px",{"lineHeight":"24px","letterSpacing":"0","fontWeight":"600"}],"display-lg":["44px",{"lineHeight":"52px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"600"}],"body-sm":["14px",{"lineHeight":"20px","letterSpacing":"0.005em","fontWeight":"400"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.005em","fontWeight":"600"}],"display-lg-mobile":["32px",{"lineHeight":"40px","letterSpacing":"-0.015em","fontWeight":"700"}],"body-md":["16px",{"lineHeight":"24px","letterSpacing":"0","fontWeight":"400"}],"label-lg":["14px",{"lineHeight":"20px","letterSpacing":"0.01em","fontWeight":"600"}],"headline-xl":["32px",{"lineHeight":"40px","letterSpacing":"-0.015em","fontWeight":"600"}],"body-lg":["18px",{"lineHeight":"28px","letterSpacing":"-0.005em","fontWeight":"400"}],"code-num":["15px",{"lineHeight":"20px","letterSpacing":"0.02em","fontWeight":"500"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-secondary-container selection:text-on-secondary-container"><header class="fixed top-0 left-0 right-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-20 max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-sm"><img alt="JeevanGrid Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0_F511bDxbm-42RdE_16-7A2-vX8jkKf-9E5obOVePqeyCQmsFGPDNiWB5qZiCCjQ75JK9ZB3LkOYwkApxB1iDJZ0UGohHLt5eexSUx9gkKhgcris0y0hj44TCKqwI3AeoHLUaTjZG7QqcD-xlJOWoyNPvBS1zT2gGfCv-MYhfpmCvhp1p8QUeGiENfXREL-5pplKGHuTUAe3tfd8jvp9WQEEn8cOfhNjVdlCk9YcEKypaIqGTrMx"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary leading-tight tracking-tight">JeevanGrid</span><span class="font-label-sm text-label-sm text-on-surface-variant hidden sm:inline-block">Safer People. Stronger Communities.</span></div></div><nav class="hidden xl:flex items-center gap-space-lg" data-active-classes="text-primary font-bold"><a aria-current="page" class="transition-colors text-primary font-bold" data-path="home" href="#">Home</a><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors" data-path="disasters" href="#">Disasters</a><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors" data-path="safety-guides" href="#">Safety Guides</a><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors" data-path="resources" href="#">Resources</a><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors" data-path="about" href="#">About</a></nav><div class="flex items-center gap-space-xs sm:gap-space-sm"><a class="inline-flex items-center justify-center px-space-md py-space-xs rounded-full border border-error text-error hover:bg-error-container hover:text-on-error-container transition-all font-label-md text-label-md" data-path="emergency-help" href="#"><span class="material-symbols-outlined mr-1 text-[16px]">e911_emergency</span>Emergency Help</a><a class="inline-flex items-center justify-center px-space-md py-space-xs rounded-lg bg-primary-container text-on-primary hover:bg-primary transition-all font-label-md text-label-md shadow-[0_1px_3px_rgba(30,41,59,0.04)]" data-path="login" href="#">Citizen Portal / Login</a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-20 bg-surface"><div class="flex flex-col w-full">
+<!-- SECTION 1: HERO & PRIMARY DUAL CITIZEN ACTION AREA -->
+<section class="relative w-full overflow-hidden">
+<!-- Hero Background with Misty Ghats & Editorial Scrim -->
+<div class="absolute inset-0 z-0 bg-cover bg-center" data-alt="Cinematic wide view of misty layered mountains and lush green tea valleys in the Western Ghats of India during early morning dawn, soft ethereal white clouds drifting between ridge lines, muted earthy green foliage and quiet tranquil atmosphere, high key natural lighting" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAiqr5_bUbErzqUfDN6Od2DYkj493knH9alhkhv0Nmui_MrXW1foPN8kGUb6CcX7CiQofalNrY2ZXOr9OH50CnLlv6W5MUfbYpYBieFFeG4cRI5bWP6kqEaqOzIeoNCTeebb59PIYS67rtJZDprwXVH9WE2l0MiBqOG0Dv5twpd6iPQ3B43xmBlgVwMnQ9LL7s5ijCSmpJ8soNDv923eRCC4TB2E4Y-6Hb0-NFAPl2QmJLGk2dic2UI')">
+<div class="absolute inset-0 bg-gradient-to-b from-surface/85 via-surface/90 to-surface"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-surface via-surface/80 to-transparent"></div>
+</div>
+<div class="relative z-10 max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop pt-space-xl lg:pt-space-3xl pb-space-2xl">
+<!-- Eyebrow & Hero Header -->
+<div class="max-w-3xl flex flex-col gap-space-sm mb-space-2xl">
+<div class="inline-flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-surface-container-high w-fit">
+<span class="w-2 h-2 rounded-full bg-surface-tint animate-pulse"></span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-primary font-bold">BE PREPARED. STAY INFORMED.</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-surface tracking-tight leading-tight">
+          In every disaster,<br/>
+<span class="text-primary-container">you are not alone.</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+          Know the real-time risks around your neighborhood, receive official multi-hazard alerts early, and access verified civic aid with one touch.
+        </p>
+</div>
+<!-- DUAL ACTION CARDS (Clean Editorial Elevation, No Outer Heavy Rings) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-stretch">
+<!-- CARD 1: Check Disaster Forecast -->
+<div class="lg:col-span-6 bg-surface-container-lowest rounded-xl p-space-lg lg:p-space-xl shadow-sm flex flex-col justify-between">
+<div class="flex flex-col gap-space-xs mb-space-md">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wide text-secondary">Proactive Prevention</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-surface-tint">verified</span> IMD &amp; CWC Grid
+              </span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Check Disaster Forecast</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Examine live localized hazard vulnerability, flood staging, and actionable storm alerts for your district.
+            </p>
+</div>
+<div class="flex flex-col gap-space-sm">
+<div class="flex flex-col sm:flex-row gap-space-xs">
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">location_on</span>
+<input class="w-full h-12 pl-10 pr-3 rounded-lg bg-surface-container-low text-on-surface font-body-sm text-body-sm focus:bg-surface-container-lowest transition-colors outline-none" id="geo-search-input" placeholder="Enter city, district or PIN code (e.g. 400001)" type="text"/>
+</div>
+<button class="h-12 px-space-lg rounded-lg bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-primary transition-all flex items-center justify-center gap-space-xs" id="btn-check-risk" type="button">
+<span>Check Risk</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<button class="inline-flex items-center gap-1.5 font-label-md text-label-md text-secondary hover:text-on-secondary-container transition-colors" id="btn-detect-gps" type="button">
+<span class="material-symbols-outlined text-[16px]">my_location</span>
+<span>Detect my current location (GPS)</span>
+</button>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Telemetry refreshed 2m ago</span>
+</div>
+</div>
+</div>
+<!-- CARD 2: Emergency Response Triage -->
+<div class="lg:col-span-6 bg-surface-container-lowest rounded-xl p-space-lg lg:p-space-xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-error"></div>
+<div class="flex flex-col gap-space-xs mb-space-md">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wide text-error font-bold flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-error"></span> Rapid Citizen Triage
+              </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">24/7 National Dispatch</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Do you need help right now?</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Select verified civic communication channels to alert national rescue authorities or receive emergency guidance.
+            </p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-xs">
+<!-- Triage Option 1 -->
+<a class="p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors flex flex-col gap-space-xs text-left group" href="#">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">smart_toy</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">AI Safety Assistant</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Instant evacuation triage &amp; survival protocols</span>
+</a>
+<!-- Triage Option 2 -->
+<a class="p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors flex flex-col gap-space-xs text-left group" href="#">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[20px]">emergency_share</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface group-hover:text-secondary transition-colors">Report Emergency</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Broadcast live GPS coordinates to SDRF</span>
+</a>
+<!-- Triage Option 3 -->
+<a class="p-space-sm rounded-lg bg-error-container hover:bg-error/20 transition-colors flex flex-col gap-space-xs text-left group" href="tel:112">
+<div class="w-8 h-8 rounded-lg bg-error text-on-error flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">call</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-error-container">Call 112 / 1078</span>
+<span class="font-label-sm text-label-sm text-on-error-container">National Emergency &amp; NDRF hotlines</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 2: LIVE CIVIC STATUS STRIP -->
+<section class="w-full bg-surface-container-low py-space-sm">
+<div class="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop flex flex-wrap items-center justify-between gap-space-md">
+<div class="flex flex-wrap items-center gap-space-md">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-primary animate-ping"></span>
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider font-bold">India Disaster Grid</span>
+</div>
+<div class="h-4 w-px bg-outline-variant hidden sm:block"></div>
+<div class="flex items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">04 Active Alerts</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">07 Regions at Risk</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm hidden md:inline-flex">12 Weather Advisories</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-surface-tint">sync</span>
+<span>Last Telemetry: 2 min ago</span>
+</div>
+<a class="font-label-md text-label-md text-primary hover:text-primary-container font-bold flex items-center gap-1 transition-colors" href="#">
+<span>View all national alerts</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</div>
+</section>
+<!-- SECTION 3: LIVE CITIZEN INFORMATION DASHBOARD (3-COLUMN API-READY GRID) -->
+<section class="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop py-space-3xl w-full">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-sm mb-space-xl">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">Local Observation</span>
+<h2 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">Citizen Diagnostic Dashboard</h2>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-md">
+        Synthesized meteorological telemetry, localized multi-hazard watches, and ambient air parameters updated every 15 minutes.
+      </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg">
+<!-- Column 1: Current Weather -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Current Weather</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Mumbai, Maharashtra</h3>
+</div>
+<button class="px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors">
+              Change
+            </button>
+</div>
+<div class="flex items-baseline justify-between pt-space-xs">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-display-lg text-display-lg text-primary font-bold">28°C</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Partly Cloudy</span>
+</div>
+<div class="w-12 h-12 rounded-full bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[28px]">partly_cloudy_day</span>
+</div>
+</div>
+<!-- Micro Sensor Data Bar -->
+<div class="grid grid-cols-3 gap-space-xs py-space-sm rounded-lg bg-surface-container-low px-space-sm">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Humidity</span>
+<span class="font-code-num text-code-num text-on-surface font-semibold">78%</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Wind</span>
+<span class="font-code-num text-code-num text-on-surface font-semibold">12 km/h</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Rain Chance</span>
+<span class="font-code-num text-code-num text-on-surface font-semibold">20%</span>
+</div>
+</div>
+</div>
+<div class="mt-space-md p-space-sm rounded-lg bg-surface-container-low flex items-center gap-space-xs text-primary">
+<span class="material-symbols-outlined text-[20px] text-surface-tint">check_circle</span>
+<span class="font-label-md text-label-md text-on-surface">No severe storm alerts in coastal Konkan.</span>
+</div>
+</div>
+<!-- Column 2: Active Alerts Feed -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Early Warnings</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Active Alert Bulletin</h3>
+</div>
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+</div>
+<div class="flex flex-col gap-space-xs">
+<!-- Alert 1 -->
+<div class="p-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-error text-[20px]">rainy</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Heavy Rainfall</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Assam, Meghalaya</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm">Warning</span>
+</div>
+<!-- Alert 2 -->
+<div class="p-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">flood</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Flood Watch</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">North Bihar &amp; East UP</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-highest text-tertiary-container font-label-sm text-label-sm">Watch</span>
+</div>
+<!-- Alert 3 -->
+<div class="p-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-outline text-[20px]">thermostat</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Heatwave Index</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Central MP &amp; Vidarbha</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">Advisory</span>
+</div>
+<!-- Alert 4 -->
+<div class="p-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-tertiary text-[20px]">cyclone</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Cyclone Low Pressure</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">East Central Bay of Bengal</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">Monitoring</span>
+</div>
+</div>
+</div>
+<div class="mt-space-md text-right">
+<a class="font-label-sm text-label-sm text-primary hover:text-primary-container font-semibold inline-flex items-center gap-1" href="#">
+<span>View IMD Radar Map</span>
+<span class="material-symbols-outlined text-[14px]">open_in_new</span>
+</a>
+</div>
+</div>
+<!-- Column 3: Air Quality (AQI) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Air Quality (AQI)</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Mumbai, Bandra West</h3>
+</div>
+<span class="material-symbols-outlined text-secondary text-[24px]">air</span>
+</div>
+<div class="flex items-baseline gap-space-md my-space-xs">
+<span class="font-display-lg text-display-lg text-secondary font-bold">68</span>
+<div class="flex flex-col">
+<span class="px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold w-fit">Satisfactory</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">CPCB Standard Station</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-space-sm">
+            Air quality is satisfactory for most people. Outdoor sports and routine morning exercises remain safe.
+          </p>
+<!-- Simple SVG AQI Gauge Bar -->
+<div class="w-full mt-space-md">
+<div class="w-full h-2 rounded-full bg-surface-container-high overflow-hidden flex">
+<div class="w-1/5 h-full bg-surface-tint"></div>
+<div class="w-1/5 h-full bg-secondary-container"></div>
+<div class="w-1/5 h-full bg-surface-container-highest"></div>
+<div class="w-1/5 h-full bg-outline-variant"></div>
+<div class="w-1/5 h-full bg-error"></div>
+</div>
+<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant mt-1">
+<span>0 (Good)</span>
+<span>50</span>
+<span>100</span>
+<span>200+</span>
+</div>
+</div>
+</div>
+<a class="mt-space-md font-label-sm text-label-sm text-secondary hover:text-on-secondary-container font-semibold inline-flex items-center gap-1" href="#">
+<span>View details &amp; 24h trend</span>
+<span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+</a>
+</div>
+</div>
+</section>
+<!-- SECTION 4: "KNOW BEFORE IT HAPPENS" (HORIZONTAL DISASTER CATALOGUE) -->
+<section class="w-full bg-surface-container-low py-space-3xl">
+<div class="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop">
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-space-md mb-space-xl">
+<div class="max-w-xl">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">Comprehensive Hazard Directory</span>
+<h2 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">Know Before It Happens</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xxs">
+            Clear, life-saving guidance for the primary climate and geological perils documented across the subcontinent.
+          </p>
+</div>
+<div class="flex items-center gap-space-xs">
+<button aria-label="Previous hazard" class="w-10 h-10 rounded-full bg-surface-container-lowest text-on-surface hover:bg-surface-container transition-colors flex items-center justify-center shadow-sm" id="scroll-hazard-left">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<button aria-label="Next hazard" class="w-10 h-10 rounded-full bg-surface-container-lowest text-on-surface hover:bg-surface-container transition-colors flex items-center justify-center shadow-sm" id="scroll-hazard-right">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Scrollable Grid Container -->
+<div class="flex gap-space-md overflow-x-auto pb-space-sm scroll-smooth snap-x" id="hazard-carousel">
+<!-- 1. Earthquake -->
+<a class="min-w-[260px] md:min-w-[280px] bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col snap-start group" href="#">
+<div class="h-36 w-full bg-surface-container-high bg-cover bg-center" data-alt="Cracked dry earth along a seismic fault line under neutral dramatic skies, textured ground and geological fissures, minimalist editorial aesthetic" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAC9huUXb35yEIVX_0rakf-AXk2HMm68lLjPVasHuavJX1wp4SnaA3138Kqg-exTcJLq7pzF-h3ADaYygI8rnsQv8aJBIhoyGd3gSnR4qTNN9oZMa-1YD2Dk6C1xcxDDWw15Fy5unNYGo8ibICQBPCY2yIi3cBfPe-KyVv429Yt1OzCPhHdCoAvPNM9UGdCS1My2lnTuy9auoZtlWwXRPVthIgL3bKXpibX_IaI6K9IGe5OKtGVeDuC')"></div>
+<div class="p-space-md flex flex-col justify-between flex-1">
+<div>
+<span class="font-label-sm text-label-sm text-secondary uppercase font-semibold">Seismic Hazard</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors mt-0.5">Earthquake</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Drop, Cover, Hold On rules &amp; structural safety checklists.</p>
+</div>
+<div class="mt-space-md flex items-center justify-between text-primary">
+<span class="font-label-sm text-label-sm font-semibold">12 Guidelines</span>
+<span class="w-7 h-7 rounded-full bg-surface-container-low flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</span>
+</div>
+</div>
+</a>
+<!-- 2. Flood -->
+<a class="min-w-[260px] md:min-w-[280px] bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col snap-start group" href="#">
+<div class="h-36 w-full bg-surface-container-high bg-cover bg-center" data-alt="Submerged river banks during monsoon season with calm reflective silt waters and distant swaying tropical palm trees under an overcast rainy sky" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCSPPcGcBJa0epDaWYFFvyg9y713IMo3NFHA9dVypMpa40varswrCGIs0leYI1u9a6fiQf6rbSCKzgmN0uMrAf8pOah29SxVbLpT_EPwVwjDLd5LYttQjc5m4LUK7y_w5OL5bhoeeQmG8S6g9znlg1I9zfRdO8bmLdKiEAK-5J6ZwxWx_BLDw1PsGVC-zLVn9lu3q3quRg7Vs-yneHK5zDT9sFKDc9fdxsrOQGGoni4UtdTNFAOABwm')"></div>
+<div class="p-space-md flex flex-col justify-between flex-1">
+<div>
+<span class="font-label-sm text-label-sm text-secondary uppercase font-semibold">Hydrological Hazard</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors mt-0.5">Flood &amp; Surge</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Staged basin levels, waterborne diseases &amp; vertical evacuation.</p>
+</div>
+<div class="mt-space-md flex items-center justify-between text-primary">
+<span class="font-label-sm text-label-sm font-semibold">18 Guidelines</span>
+<span class="w-7 h-7 rounded-full bg-surface-container-low flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</span>
+</div>
+</div>
+</a>
+<!-- 3. Cyclone -->
+<a class="min-w-[260px] md:min-w-[280px] bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col snap-start group" href="#">
+<div class="h-36 w-full bg-surface-container-high bg-cover bg-center" data-alt="Dark coastal swirling storm clouds gathering over an open ocean with forceful sea spray and wind bending shoreline vegetation, moody dramatic atmospheric lighting" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA376oGGGArcFKvEHw0SI9fl9POEW8Xd0F_RSCNESqmBQ18hmmwy2r-I31z--oRaCA7WmMTfwDvVtSeBFZia3wqqgMJ1xUH9u2FZ5F9S75myVeVuv5J20G7yc7YHuhf76gCZxk_AdLLoX9ased0WNvpYW1kGWAGEafxzTxggatdn5k3q06A7ZKpTPKvW-XlI_SOhUomu-hBjrRiszgWqKQqc7OflZDbTZYvwFr0YUs73flnGfvH_kl8')"></div>
+<div class="p-space-md flex flex-col justify-between flex-1">
+<div>
+<span class="font-label-sm text-label-sm text-secondary uppercase font-semibold">Meteorological</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors mt-0.5">Cyclone</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Wind categorization, storm shelters &amp; post-landfall hazards.</p>
+</div>
+<div class="mt-space-md flex items-center justify-between text-primary">
+<span class="font-label-sm text-label-sm font-semibold">14 Guidelines</span>
+<span class="w-7 h-7 rounded-full bg-surface-container-low flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</span>
+</div>
+</div>
+</a>
+<!-- 4. Heatwave -->
+<a class="min-w-[260px] md:min-w-[280px] bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col snap-start group" href="#">
+<div class="h-36 w-full bg-surface-container-high bg-cover bg-center" data-alt="Sunlight casting harsh deep shadows across arid cracked terracotta soil and dust haze in an open rural landscape under midday sun" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC3jdnz-x5p6Pg3PWRoW5IQlA2St5HJhQAG4EdAmfFngmTAnHTBQzgAG9VJSeIL2dC8pQGGBRSsnSHjhdQfacPbYhkEuY4euK6tpoGXi3LCnlW54_MVS6gPUgdF1E9Q5V39iijqmZ7fC5gqayoZmC-47VtrA7nF7x8QRW_6Ee_d6x4z-khWT_uJSFb_nZh6V5JTPcS6siAPfXPWEL_xxdrKH9rcLzqdOY12Q9uIl8ltSYKOX0rZ40b_')"></div>
+<div class="p-space-md flex flex-col justify-between flex-1">
+<div>
+<span class="font-label-sm text-label-sm text-secondary uppercase font-semibold">Climatic Extreme</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors mt-0.5">Heatwave</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Wet-bulb warnings, electrolytic rehydration &amp; elderly care.</p>
+</div>
+<div class="mt-space-md flex items-center justify-between text-primary">
+<span class="font-label-sm text-label-sm font-semibold">9 Guidelines</span>
+<span class="w-7 h-7 rounded-full bg-surface-container-low flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</span>
+</div>
+</div>
+</a>
+<!-- 5. Landslide -->
+<a class="min-w-[260px] md:min-w-[280px] bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col snap-start group" href="#">
+<div class="h-36 w-full bg-surface-container-high bg-cover bg-center" data-alt="Steep mountainous hill slope in the Himalayan foothills showing exposed earth and loose rock formations after severe precipitation, mist clinging to pine ridges" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCGAmQBTMud1gpQCvzq19Ad3Ocpnudq4SluCj73DOri-m_A9SAatY6RI4yNDWc-VWQeLQ4W_091NC6la1lSTi20Z3Eg-GnOIr21NJfO3WsKtanSpxnsoHsBl_lT4OPtWJxF0YCUyuDj-hQwQlyX_nPTSau2_jeoY61y-XiJU5-L5SFK7dEd285m9bGRtseEVGG-qoVG-gfGUw3U58FzMq7bNJ16O5UAmYvkvwQs_Als1gMq9r7ST6oh')"></div>
+<div class="p-space-md flex flex-col justify-between flex-1">
+<div>
+<span class="font-label-sm text-label-sm text-secondary uppercase font-semibold">Geological Peril</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors mt-0.5">Landslide</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Hill slope warning cues, mudflow velocity &amp; safe detours.</p>
+</div>
+<div class="mt-space-md flex items-center justify-between text-primary">
+<span class="font-label-sm text-label-sm font-semibold">11 Guidelines</span>
+<span class="w-7 h-7 rounded-full bg-surface-container-low flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</span>
+</div>
+</div>
+</a>
+<!-- 6. Lightning -->
+<a class="min-w-[260px] md:min-w-[280px] bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col snap-start group" href="#">
+<div class="h-36 w-full bg-surface-container-high bg-cover bg-center" data-alt="A striking single branch of lightning bolt illuminating a stormy twilight horizon with silhouettes of isolated farm fields and acacia trees" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC_pdgF2-fx4gGEGP-y6bxZvlD7V1Z_S5IFPrhWSUjT0mZbIdNAp_pTc_G7gHvjdjGqbVeSkYYi5WZy_s3aQATTBi7KiP1aysUfOTrgCMP7zdjfL4tjIDNRHoBdX4epsMKX8maxM7PQaqlcLRm29RNBTCkxPP4G-VRn4GOBEsAaC77yJRx8ateufqYyboQtGycvEnAsmyiYXYTxD5vAyCngndQ4xu9bKN45YmZTuCmo2qe8oNvjbpwU')"></div>
+<div class="p-space-md flex flex-col justify-between flex-1">
+<div>
+<span class="font-label-sm text-label-sm text-secondary uppercase font-semibold">Thunderstorm</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors mt-0.5">Lightning</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">The 30-30 rule, rural farm safety, and lightning surge protection.</p>
+</div>
+<div class="mt-space-md flex items-center justify-between text-primary">
+<span class="font-label-sm text-label-sm font-semibold">8 Guidelines</span>
+<span class="w-7 h-7 rounded-full bg-surface-container-low flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</span>
+</div>
+</div>
+</a>
+<!-- 7. Forest Fire -->
+<a class="min-w-[260px] md:min-w-[280px] bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col snap-start group" href="#">
+<div class="h-36 w-full bg-surface-container-high bg-cover bg-center" data-alt="Dense dry deciduous woodland with distant smoky haze and warm amber fire glows along the forest floor ridge during dry summer months" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBzoWipfoeJgjCorB-thNA9GIR1EcVYDUMLKrBYHCn24k0r04gxkHeLSA4l6njUb6MLxxHUmbvS-svdgunuXRKnYNFdcPPSICT8bdIuoFSlsaoOuVoTtmj_jS60GhhJ-Sl1uu8VkLpjtpjbtLp3WlgnwFfvwXi_gyhBfV_bZ0AR87-qPfRJGnxPajxvz5Ymi2ZfxEMt32A2-nqm3szUk46ET7Wp1jvnO36j06P4jWvhSmuVAAGcF3xq')"></div>
+<div class="p-space-md flex flex-col justify-between flex-1">
+<div>
+<span class="font-label-sm text-label-sm text-secondary uppercase font-semibold">Ecological Fire</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors mt-0.5">Forest Fire</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Creating defensible perimeter space and smoke inhalation filters.</p>
+</div>
+<div class="mt-space-md flex items-center justify-between text-primary">
+<span class="font-label-sm text-label-sm font-semibold">10 Guidelines</span>
+<span class="w-7 h-7 rounded-full bg-surface-container-low flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</span>
+</div>
+</div>
+</a>
+<!-- 8. Drought -->
+<a class="min-w-[260px] md:min-w-[280px] bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col snap-start group" href="#">
+<div class="h-36 w-full bg-surface-container-high bg-cover bg-center" data-alt="Dry reservoir basin bed with geometric drying mud cracks under vast clear open sky, solitary dead tree stump in the foreground" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAUQVklikJjMOEA5sAjaWShlJH4MOofxj2v2-xRHbyUjE14eWVJXsAWNYZCqeU8XHMKwgFUC-PFY7rQRIWINUWS37wBIctCgh4iG0GuaoulD4_7k-A2cWx-tJf0IFo_tZuRYQJ5hXAbjQgNzPmvboXpUuXAbLOxosiiPMmC-SN1XvLY9oOjnc09934wYa-VrraGRgYIs7p9bqxsGZrGK5NaHfrkWJsfr1fLekT0jrc3skYPvQEdxtc7')"></div>
+<div class="p-space-md flex flex-col justify-between flex-1">
+<div>
+<span class="font-label-sm text-label-sm text-secondary uppercase font-semibold">Chronic Hazard</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors mt-0.5">Drought</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Groundwater conservation, rationing protocols &amp; livestock security.</p>
+</div>
+<div class="mt-space-md flex items-center justify-between text-primary">
+<span class="font-label-sm text-label-sm font-semibold">15 Guidelines</span>
+<span class="w-7 h-7 rounded-full bg-surface-container-low flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</span>
+</div>
+</div>
+</a>
+</div>
+</div>
+</section>
+<!-- SECTION 5: "BE READY BEFORE IT HAPPENS" (CHRONOLOGICAL PREPAREDNESS PHASES) -->
+<section class="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop py-space-3xl w-full">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-sm mb-space-xl">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">Resilience Framework</span>
+<h2 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">Be Ready Before It Happens</h2>
+</div>
+<a class="font-label-md text-label-md text-primary font-bold hover:text-primary-container inline-flex items-center gap-1 transition-colors" href="#">
+<span>Explore all 24 verified safety guides</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+<!-- Phase 1: BEFORE -->
+<div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div>
+<div class="flex items-center justify-between mb-space-md">
+<span class="px-2.5 py-1 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm font-bold uppercase tracking-wider">
+              Phase 01 • BEFORE
+            </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Preventive</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-space-xs">Build a 72-Hour Family Kit</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+            When standard supply chains and power grids snap, having vital supplies pre-packed prevents immediate desperation.
+          </p>
+<ul class="flex flex-col gap-space-xs text-on-surface font-body-sm text-body-sm">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-surface-tint text-[18px] mt-0.5">check_circle</span>
+<span>4 liters potable water per person/day</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-surface-tint text-[18px] mt-0.5">check_circle</span>
+<span>Non-perishable high-protein food &amp; dry dates</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-surface-tint text-[18px] mt-0.5">check_circle</span>
+<span>Prescription medicines &amp; waterproof ID copies</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-surface-tint text-[18px] mt-0.5">check_circle</span>
+<span>Crank/solar radio &amp; external power bank</span>
+</li>
+</ul>
+</div>
+<div class="mt-space-lg pt-space-md bg-surface-container-low rounded-lg p-space-sm flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Family Readiness Index</span>
+<span class="font-code-num text-code-num text-primary font-bold">Step 1 of 3</span>
+</div>
+</div>
+<!-- Phase 2: DURING -->
+<div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div>
+<div class="flex items-center justify-between mb-space-md">
+<span class="px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold uppercase tracking-wider">
+              Phase 02 • DURING
+            </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Active Danger</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-space-xs">Execute Survival Postures</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+            Knowing split-second reactions reduces injuries by up to 80%. Stay calm and adhere to official advisories.
+          </p>
+<ul class="flex flex-col gap-space-xs text-on-surface font-body-sm text-body-sm">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px] mt-0.5">check_circle</span>
+<span>Disconnect main gas valves &amp; electric trip switches</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px] mt-0.5">check_circle</span>
+<span>Move away from unreinforced masonry &amp; glass panes</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px] mt-0.5">check_circle</span>
+<span>Do NOT cross inundated bridges or fast culverts</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px] mt-0.5">check_circle</span>
+<span>Follow designated evacuation routes from collectors</span>
+</li>
+</ul>
+</div>
+<div class="mt-space-lg pt-space-md bg-surface-container-low rounded-lg p-space-sm flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Shelter &amp; Egress Plan</span>
+<span class="font-code-num text-code-num text-secondary font-bold">Step 2 of 3</span>
+</div>
+</div>
+<!-- Phase 3: AFTER -->
+<div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div>
+<div class="flex items-center justify-between mb-space-md">
+<span class="px-2.5 py-1 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm font-bold uppercase tracking-wider">
+              Phase 03 • AFTER
+            </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Recovery</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-space-xs">Safe Recovery &amp; Hygiene</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+            Secondary hazards like contaminated water and hanging live cables often present greater risks post-event.
+          </p>
+<ul class="flex flex-col gap-space-xs text-on-surface font-body-sm text-body-sm">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-outline text-[18px] mt-0.5">check_circle</span>
+<span>Boil all tap water or use chlorine purification</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-outline text-[18px] mt-0.5">check_circle</span>
+<span>Photograph structural damages for claim filings</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-outline text-[18px] mt-0.5">check_circle</span>
+<span>Signal stranded elders or pets with bright fabric</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-outline text-[18px] mt-0.5">check_circle</span>
+<span>Rely strictly on official bulletins; reject rumors</span>
+</li>
+</ul>
+</div>
+<div class="mt-space-lg pt-space-md bg-surface-container-low rounded-lg p-space-sm flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Civic Reintegration</span>
+<span class="font-code-num text-code-num text-on-surface font-bold">Step 3 of 3</span>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 6: ESSENTIAL CIVIC RESOURCES (5 CARDS) -->
+<section class="w-full bg-surface-container-low py-space-3xl">
+<div class="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop">
+<div class="max-w-2xl mb-space-xl">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">Civic Infrastructure</span>
+<h2 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">Essential Public Resources</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xxs">
+          Vetted public services, direct contact registries, and downloadable emergency assets maintained under National Disaster Management frameworks.
+        </p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-space-md">
+<!-- Resource 1 -->
+<a class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group" href="#">
+<div class="flex flex-col gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary group-hover:bg-primary-container group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[22px]">contact_phone</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Emergency Helplines</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Verified nationwide lines: NDRF (1078), Police (112), Ambulance (108).</p>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold mt-space-md inline-flex items-center gap-1">
+            Access directory →
+          </span>
+</a>
+<!-- Resource 2 -->
+<a class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group" href="#">
+<div class="flex flex-col gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary group-hover:bg-secondary-container group-hover:text-on-secondary-container transition-colors">
+<span class="material-symbols-outlined text-[22px]">domain</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">State Portals</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Direct links to 36 State Disaster Management Authorities (SDMAs).</p>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-bold mt-space-md inline-flex items-center gap-1">
+            Browse portals →
+          </span>
+</a>
+<!-- Resource 3 -->
+<a class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group" href="#">
+<div class="flex flex-col gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface group-hover:bg-surface-tint group-hover:text-surface-bright transition-colors">
+<span class="material-symbols-outlined text-[22px]">rule</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Safety Guidelines</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Official standardized do's and don'ts issued by NDMA and MHA.</p>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface font-bold mt-space-md inline-flex items-center gap-1">
+            View standards →
+          </span>
+</a>
+<!-- Resource 4 -->
+<a class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group" href="#">
+<div class="flex flex-col gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary group-hover:bg-primary-container group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[22px]">checklist_rtl</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Preparedness Check</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Interactive readiness auditor for residential housing societies.</p>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold mt-space-md inline-flex items-center gap-1">
+            Start auditor →
+          </span>
+</a>
+<!-- Resource 5 -->
+<a class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group" href="#">
+<div class="flex flex-col gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-tertiary group-hover:bg-tertiary-container group-hover:text-surface-bright transition-colors">
+<span class="material-symbols-outlined text-[22px]">download_for_offline</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Offline Manuals</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Printable PDFs &amp; multi-lingual regional emergency guides.</p>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-tertiary font-bold mt-space-md inline-flex items-center gap-1">
+            Download PDFs →
+          </span>
+</a>
+</div>
+</div>
+</section>
+<!-- SECTION 7: "KNOW YOUR REGION" (INTERACTIVE REGIONAL RISK EXPLORER) -->
+<section class="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop py-space-3xl w-full">
+<div class="bg-surface-container-lowest rounded-xl p-space-lg lg:p-space-2xl shadow-sm">
+<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-lg pb-space-lg">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">Hyperlocal Telemetry</span>
+<h2 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">Know Your Region</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+            Examine the institutional safety status and designated disaster relief headquarters for your administrative jurisdiction.
+          </p>
+</div>
+<!-- Interactive District Selectors -->
+<div class="flex flex-wrap items-center gap-space-sm w-full lg:w-auto">
+<div class="flex flex-col gap-1 w-full sm:w-48">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="state-select">Select State</label>
+<select class="h-11 px-3 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md outline-none" id="state-select">
+<option selected="">Maharashtra</option>
+<option>Gujarat</option>
+<option>Kerala</option>
+<option>Odisha</option>
+<option>Tamil Nadu</option>
+<option>Assam</option>
+</select>
+</div>
+<div class="flex flex-col gap-1 w-full sm:w-48">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="district-select">Select District</label>
+<select class="h-11 px-3 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md outline-none" id="district-select">
+<option selected="">Mumbai Suburban</option>
+<option>Mumbai City</option>
+<option>Thane</option>
+<option>Raigad</option>
+<option>Pune</option>
+<option>Ratnagiri</option>
+</select>
+</div>
+</div>
+</div>
+<!-- Regional Information Display Board -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-md pt-space-lg">
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Primary Documented Hazards</span>
+<div class="flex flex-wrap gap-1 mt-2">
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm">Urban Inundation</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm">Coastal Surge</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm">Cyclonic Winds</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-space-md">Zone III Seismic Activity</span>
+</div>
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Current Vulnerability Level</span>
+<div class="flex items-center gap-2 mt-2">
+<span class="w-3 h-3 rounded-full bg-surface-tint"></span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Low to Moderate</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Normal baseline seasonal readiness. No red warnings active.</p>
+</div>
+<span class="font-label-sm text-label-sm text-surface-tint font-bold">Standard Monitoring</span>
+</div>
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Public Shelter Assets</span>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="font-display-lg text-display-lg text-primary font-bold">14</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Identified shelters &lt; 5km</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Municipal schools, indoor stadiums, and civic ward halls.</p>
+</div>
+<a class="font-label-sm text-label-sm text-primary font-bold" href="#">View Shelter Map →</a>
+</div>
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Nearest Response Unit</span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mt-2">NDRF Regional Response</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Andheri East Battalion Hub</p>
+<p class="font-code-num text-code-num text-primary font-bold mt-1">022-26840000</p>
+</div>
+<a class="font-label-sm text-label-sm text-secondary font-bold" href="tel:02226840000">Direct Emergency Dispatch →</a>
+</div>
+</div>
+<div class="mt-space-lg pt-space-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+<p class="font-label-sm text-label-sm text-on-surface-variant">
+          Informational assessment synthesized from open telemetry published by District Disaster Management Authorities (DDMA).
+        </p>
+<span class="font-label-sm text-label-sm text-surface-tint font-bold">Status: Synchronized</span>
+</div>
+</div>
+</section>
+<!-- SECTION 8: COMMUNITY RESILIENCE & DATA TRANSPARENCY -->
+<section class="w-full bg-surface-container-low py-space-3xl">
+<div class="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop">
+<!-- Key Statistics Row -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-space-md mb-space-2xl">
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col">
+<span class="font-display-lg text-display-lg text-primary font-bold">28 + 8</span>
+<span class="font-headline-sm text-headline-sm text-on-surface mt-1">States &amp; UTs</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Continuous geographic grid across all territories.</span>
+</div>
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col">
+<span class="font-display-lg text-display-lg text-secondary font-bold">14</span>
+<span class="font-headline-sm text-headline-sm text-on-surface mt-1">Hazard Categories</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Standardized mitigation playbooks for every crisis.</span>
+</div>
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col">
+<span class="font-display-lg text-display-lg text-tertiary font-bold">24 / 7</span>
+<span class="font-headline-sm text-headline-sm text-on-surface mt-1">Automated Feeds</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">IMD, CWC, and satellite Doppler integration.</span>
+</div>
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col">
+<span class="font-display-lg text-display-lg text-surface-tint font-bold">100%</span>
+<span class="font-headline-sm text-headline-sm text-on-surface mt-1">Civic Open Data</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Free for all citizens, communities, and rescue volunteers.</span>
+</div>
+</div>
+<!-- Institutional Partnership & Open Telemetry Accreditation -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg lg:p-space-xl shadow-sm flex flex-col lg:flex-row items-center justify-between gap-space-xl">
+<div class="max-w-xl">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">Official Civic Data Sources</span>
+<h3 class="font-headline-lg text-headline-lg text-on-surface mt-1">Built Around Verified Public Telemetry</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-space-xs">
+            JeevanGrid synthesizes alerts from the India Meteorological Department (IMD), National Disaster Management Authority (NDMA), Central Water Commission (CWC), and ISRO NRSC sensor grids to deliver timely, trusted alerts directly to Indian citizens.
+          </p>
+</div>
+<!-- Telemetry Source Pills Grid -->
+<div class="flex flex-wrap gap-space-xs justify-center lg:justify-end max-w-md">
+<div class="px-3 py-2 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">satellite_alt</span>
+<span>IMD Meteorology</span>
+</div>
+<div class="px-3 py-2 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">security</span>
+<span>NDMA Directives</span>
+</div>
+<div class="px-3 py-2 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">water_drop</span>
+<span>CWC River Basins</span>
+</div>
+<div class="px-3 py-2 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">radar</span>
+<span>ISRO NRSC Cartography</span>
+</div>
+<div class="px-3 py-2 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">health_and_safety</span>
+<span>MoHFW Public Health</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Interactive Client-side Logic -->
+<script>
+    (function() {
+      // Horizontal Hazard Carousel Controls
+      const carousel = document.getElementById('hazard-carousel');
+      const btnLeft = document.getElementById('scroll-hazard-left');
+      const btnRight = document.getElementById('scroll-hazard-right');
+
+      if (carousel && btnLeft && btnRight) {
+        btnLeft.addEventListener('click', function() {
+          carousel.scrollBy({ left: -300, behavior: 'smooth' });
+        });
+        btnRight.addEventListener('click', function() {
+          carousel.scrollBy({ left: 300, behavior: 'smooth' });
+        });
+      }
+
+      // GPS Simulation Button
+      const btnGps = document.getElementById('btn-detect-gps');
+      const searchInput = document.getElementById('geo-search-input');
+      if (btnGps && searchInput) {
+        btnGps.addEventListener('click', function() {
+          btnGps.classList.add('opacity-50');
+          searchInput.value = 'Locating via GPS...';
+          setTimeout(function() {
+            searchInput.value = 'Bandra West, Mumbai Suburban (400050)';
+            btnGps.classList.remove('opacity-50');
+          }, 600);
+        });
+      }
+
+      // Interactive check button
+      const btnCheck = document.getElementById('btn-check-risk');
+      if (btnCheck && searchInput) {
+        btnCheck.addEventListener('click', function() {
+          if (!searchInput.value.trim()) {
+            searchInput.focus();
+            searchInput.placeholder = 'Please enter PIN code or City name';
+          } else {
+            btnCheck.innerHTML = '<span>Checking...</span>';
+            setTimeout(function() {
+              btnCheck.innerHTML = '<span>Safe (Low Risk)</span><span class="material-symbols-outlined text-[18px]">verified</span>';
+            }, 500);
+          }
+        });
+      }
+    })();
+  </script>
+</div></main><footer class="w-full bg-surface-container-low mt-space-3xl py-space-3xl"><div class="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-space-xl mb-space-2xl"><div class="lg:col-span-2 flex flex-col gap-space-sm"><div class="flex items-center gap-space-xs"><img alt="JeevanGrid Brand Logo" class="h-7 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0_F511bDxbm-42RdE_16-7A2-vX8jkKf-9E5obOVePqeyCQmsFGPDNiWB5qZiCCjQ75JK9ZB3LkOYwkApxB1iDJZ0UGohHLt5eexSUx9gkKhgcris0y0hj44TCKqwI3AeoHLUaTjZG7QqcD-xlJOWoyNPvBS1zT2gGfCv-MYhfpmCvhp1p8QUeGiENfXREL-5pplKGHuTUAe3tfd8jvp9WQEEn8cOfhNjVdlCk9YcEKypaIqGTrMx"/><span class="font-headline-sm text-headline-sm text-primary">JeevanGrid</span></div><p class="font-body-sm text-body-sm text-on-surface-variant max-w-md">A dependable civic infrastructure network engineered for disaster resilience, civic coordination, and public warning clarity across affected regions.</p><div class="flex flex-wrap gap-space-xs mt-space-xs"><div class="inline-flex items-center px-space-xs py-space-xxs rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm"><span class="w-2 h-2 rounded-full bg-surface-tint mr-space-xs"></span>Operational Grid 99.98%</div><div class="inline-flex items-center px-space-xs py-space-xxs rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm"><span class="material-symbols-outlined mr-1 text-[14px]">accessibility_new</span>WCAG 2.1 AAA Compliant</div></div></div><div class="flex flex-col gap-space-xs"><h4 class="font-headline-sm text-headline-sm text-on-surface mb-space-xs">Platform</h4><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="home" href="#">Home Overview</a><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="disasters" href="#">Live Crisis Feeds</a><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="resources" href="#">Community Shelters</a><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="about" href="#">Mission &amp; Principles</a></div><div class="flex flex-col gap-space-xs"><h4 class="font-headline-sm text-headline-sm text-on-surface mb-space-xs">Preparedness</h4><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="safety-guides" href="#">Safety Protocols</a><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="safety-guides" href="#">Flood Evacuation Plans</a><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="safety-guides" href="#">Cyclone Readiness</a><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="safety-guides" href="#">Family Emergency Kits</a></div><div class="flex flex-col gap-space-xs"><h4 class="font-headline-sm text-headline-sm text-on-surface mb-space-xs">Emergency Directory</h4><div class="flex flex-col gap-space-xs font-body-sm text-body-sm"><div class="flex justify-between items-center py-space-xxs"><span class="text-on-surface-variant">Disaster Helpline (NDRF)</span><span class="font-code-num text-code-num text-primary font-bold">1078</span></div><div class="flex justify-between items-center py-space-xxs"><span class="text-on-surface-variant">Medical / Ambulance</span><span class="font-code-num text-code-num text-primary font-bold">108</span></div><div class="flex justify-between items-center py-space-xxs"><span class="text-on-surface-variant">National Emergency (Police)</span><span class="font-code-num text-code-num text-primary font-bold">112</span></div><div class="flex justify-between items-center py-space-xxs"><span class="text-on-surface-variant">Women Helpline</span><span class="font-code-num text-code-num text-primary font-bold">1091</span></div></div></div></div><div class="pt-space-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md font-body-sm text-body-sm text-on-surface-variant"><div class="flex flex-col gap-space-xxs max-w-2xl"><p class="font-label-sm text-label-sm text-on-surface-variant">Public Notice &amp; Disclaimer: JeevanGrid is a civic digital resilience portal designed to complement official National Disaster Management Authority (NDMA), IMD meteorology, and State Disaster Management bodies. For active red alerts, prioritize immediate directives from localized state authorities.</p><p class="font-label-sm text-label-sm text-on-surface-variant">© 2026 JeevanGrid. Public Safety Infrastructure Network. All civic open data licenced under Open Government Data (OGD) provisions.</p></div><div class="flex items-center gap-space-md"><a class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="privacy-policy" href="#">Privacy Framework</a><a class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="terms-of-service" href="#">Terms of Civic Service</a><a class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-colors" data-path="accessibility" href="#">Accessibility Statement</a></div></div></div></footer></body></html>

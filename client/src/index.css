@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9ff;
+    color: #111c2d;
+    /* Indic-script-safe stack: Devanagari (hi/mr), Gujarati, Bengali/Assamese, Latin fallback (spec §21) */
+    font-family: 'Inter', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Gujarati', 'Noto Sans Bengali', system-ui, sans-serif;
+  }
+
+  /* Per-language rendering hints — browser picks correct glyph variants */
+  html[lang="hi"] body, html[lang="mr"] body {
+    font-family: 'Inter', 'Noto Sans Devanagari', 'Noto Sans', system-ui, sans-serif;
+  }
+  html[lang="gu"] body {
+    font-family: 'Inter', 'Noto Sans Gujarati', 'Noto Sans', system-ui, sans-serif;
+  }
+  html[lang="as"] body {
+    font-family: 'Inter', 'Noto Sans Bengali', 'Noto Sans', system-ui, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+/* Hide scrollbar for clean carousels while keeping functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Material Symbols settings */
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  vertical-align: middle;
+}
+
+/* Leaflet container fixes */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.75rem;
+  z-index: 10;
+}
+
+/* Tabular numerals for data metrics */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hero background carousel: smooth crossfade + subtle Ken Burns effect */
+.hero-bg-layer {
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+}
+
+.hero-kenburns {
+  animation: hero-kenburns 6s ease-out forwards;
+  will-change: transform;
+}
+
+@keyframes hero-kenburns {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  100% {
+    transform: scale(1.12) translate(-1.5%, -1.5%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,172 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  role         String        // CITIZEN, DISTRICT_OFFICER, FIELD_RESPONDER, HEALTH_OFFICER, STATE_EOC, COMMUNITY_VOLUNTEER
+  state        String        @default("Maharashtra")
+  district     String        @default("Mumbai Suburban")
+  phone        String?
+  createdAt    DateTime      @default(now())
+
+  assignedIncidents Incident[]    @relation("AssignedResponder")
+  fieldReports      FieldReport[]
+}
+
+model DisasterAlert {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  hazardType  String   // Rain, Flood, Cyclone, Heatwave, Landslide, Lightning, Fire, Earthquake
+  severity    String   // INFO, WATCH, WARNING, CRITICAL
+  state       String
+  district    String
+  latitude    Float
+  longitude   Float
+  issuedAt    DateTime @default(now())
+  expiresAt   DateTime?
+  source      String   @default("IMD / NDMA")
+  status      String   @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
+}
+
+model EmergencyReport {
+  id             String    @id // e.g. JG-2026-00421
+  citizenName    String
+  phone          String
+  locationName   String
+  latitude       Float?
+  longitude      Float?
+  emergencyType  String    // Flood, Fire, Earthquake, Medical, Landslide, Trapped Person, Infrastructure Damage, Other
+  urgency        String    // Critical, High, Moderate
+  peopleAffected Int       @default(1)
+  description    String
+  photoUrl       String?
+  status         String    @default("PENDING") // PENDING, DISPATCHED, RESOLVED
+  createdAt      DateTime  @default(now())
+
+  incident       Incident?
+}
+
+model Incident {
+  id             String           @id @default(uuid())
+  reportId       String?          @unique
+  report         EmergencyReport? @relation(fields: [reportId], references: [id])
+  title          String
+  description    String
+  emergencyType  String
+  urgency        String           @default("Moderate")
+  status         String           @default("NEW") // NEW, ASSIGNED, IN_PROGRESS, RESOLVED
+  district       String           @default("Mumbai Suburban")
+  state          String           @default("Maharashtra")
+  locationName   String
+  latitude       Float?
+  longitude      Float?
+  assignedToId   String?
+  assignedTo     User?            @relation("AssignedResponder", fields: [assignedToId], references: [id])
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  fieldReports   FieldReport[]
+}
+
+model FieldReport {
+  id                 String    @id @default(uuid())
+  incidentId         String
+  incident           Incident  @relation(fields: [incidentId], references: [id])
+  responderId        String
+  responder          User      @relation(fields: [responderId], references: [id])
+  responderName      String
+  situationReport    String
+  casualtiesRescued  Int       @default(0)
+  medicalRequired    Boolean   @default(false)
+  notes              String?
+  photoUrl           String?
+  latitude           Float?
+  longitude          Float?
+  submittedAt        DateTime  @default(now())
+}
+
+model Hospital {
+  id               String   @id @default(uuid())
+  name             String
+  district         String
+  state            String
+  totalBeds        Int
+  availableBeds    Int
+  icuBeds          Int
+  availableIcuBeds Int
+  oxygenStockDays  Float    @default(5.0)
+  contactPhone     String
+  address          String
+  latitude         Float
+  longitude        Float
+}
+
+model Shelter {
+  id               String   @id @default(uuid())
+  name             String
+  district         String
+  state            String
+  capacity         Int
+  currentOccupancy Int      @default(0)
+  amenities        String   // JSON or comma separated string
+  contactPerson    String
+  contactPhone     String
+  address          String
+  latitude         Float
+  longitude        Float
+}
+
+model Resource {
+  id                String   @id @default(uuid())
+  name              String
+  type              String
+  district          String
+  state             String
+  quantity          Int
+  availableQuantity Int
+  status            String   @default("READY")
+  contactPhone      String
+}
+
+model SafetyGuide {
+  id                 String   @id @default(uuid())
+  slug               String   @unique
+  title              String
+  hazardType         String
+  category           String
+  summary            String
+  guidelineCount     Int      @default(12)
+  imageUrl           String?
+  beforeSteps        String   // JSON string
+  duringSteps        String   // JSON string
+  afterSteps         String   // JSON string
+  dos                String   // JSON string
+  donts              String   // JSON string
+  kitItems           String   // JSON string
+  evacuationTriggers String   // JSON string
+}
+
+model WeatherSnapshot {
+  id              String   @id @default(uuid())
+  location        String
+  state           String
+  district        String
+  temperature     Float
+  condition       String
+  humidity        Int
+  windSpeed       Float
+  rainProbability Int
+  aqi             Int
+  aqiStatus       String
+  recordedAt      DateTime @default(now())
+}
