@@ -8,6 +8,12 @@
 [![Deploy](https://img.shields.io/badge/frontend-Vercel%20ready-black)](#deployment)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](#license)
 
+<p align="center">
+  <a href="https://jeevangrid-one.vercel.app">
+    <img src="https://img.shields.io/badge/🚀%20LIVE%20DEMO-Try%20the%20Prototype-00C853?style=for-the-badge" alt="Live Demo">
+  </a>
+</p>
+
 JeevanGrid bridges the communication gap between Indian citizens and disaster management
 authorities during geological, meteorological, and hydrological emergencies — with live
 risk intelligence, official alert bulletins, rapid incident triage, role-based operational
