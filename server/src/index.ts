@@ -14,11 +14,16 @@ import resourceRoutes from './routes/resourceRoutes';
 import guideRoutes from './routes/guideRoutes';
 import aiRoutes from './routes/aiRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
+import { startAlertScheduler } from './services/alerts/alertScheduler';
 import earthquakeRoutes from './routes/earthquakeRoutes';
 import geoRoutes from './routes/geoRoutes';
 import facilitiesRoutes from './routes/facilitiesRoutes';
 import advisoriesRoutes from './routes/advisoriesRoutes';
 import languageRoutes from './routes/languageRoutes';
+import subscriptionRoutes from './routes/subscriptionRoutes';
+import healthIntelligenceRoutes from './routes/healthIntelligenceRoutes';
+import { getAlertSystemHealth } from './controllers/systemHealthController';
+import { authenticateToken, requireRole } from './middleware/authMiddleware';
 
 dotenv.config();
 
@@ -50,6 +55,16 @@ app.use('/api/earthquakes', earthquakeRoutes);
 app.use('/api/geo', geoRoutes);
 app.use('/api/facilities', facilitiesRoutes);
 app.use('/api/advisories', advisoriesRoutes);
+app.use('/api', subscriptionRoutes);
+app.use('/api/health-intelligence', healthIntelligenceRoutes);
+// Protected operations view of the warning pipeline (EOC debugging +
+// hackathon demonstration). Authenticated EOC roles only.
+app.get(
+  '/api/alerts/system/health',
+  authenticateToken,
+  requireRole('STATE_EOC', 'DISTRICT_OFFICER'),
+  getAlertSystemHealth
+);
 // Centralized language service: translate / detect (dynamic content only);
 // static UI strings are bundled in the frontend and never hit these routes.
 app.use('/api', languageRoutes);
@@ -67,4 +82,11 @@ app.get('/api/health', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`🛡️ JeevanGrid Server running at http://localhost:${PORT}`);
+  // Backend alert ingestion worker — runs server-side so government warnings
+  // are ingested even when no browser is open. Never throws at boot.
+  try {
+    startAlertScheduler();
+  } catch (e) {
+    console.warn('[alerts] scheduler failed to start:', (e as Error).message);
+  }
 });

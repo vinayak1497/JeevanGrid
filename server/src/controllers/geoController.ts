@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import { geoService } from '../services/geoService';
 
-export function resolveGeo(req: Request, res: Response): void {
+export async function resolveGeo(req: Request, res: Response): Promise<void> {
   const location = (req.query.location as string) || (req.params.location as string) || 'Mumbai';
-  res.json({ geo: geoService.resolveLocation(location) });
+  res.json({ geo: await geoService.resolveLocationLive(location) });
 }
 
 export function listGeoStates(_req: Request, res: Response): void {

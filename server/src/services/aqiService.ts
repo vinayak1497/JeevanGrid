@@ -25,11 +25,11 @@ export class AqiService {
       return cached.data;
     }
 
-    const resolved = geoService.resolveLocation(locationQuery);
+    const resolved = await geoService.resolveLocationLive(locationQuery);
 
     // 1. Live observation: Open-Meteo Air Quality (free, CAMS-based, no key)
     try {
-      const live = await openMeteoService.getCurrentAirQuality(locationQuery);
+      const live = await openMeteoService.getCurrentAirQualityForCoords(resolved.lat, resolved.lng);
       if (live) {
         const data: AqiData = {
           location: `${resolved.city}, ${resolved.district}`,
@@ -49,70 +49,19 @@ export class AqiService {
       console.warn('Open-Meteo live AQI failed, using regional fallback:', e);
     }
 
-    let data: AqiData;
-
-    if (normalized.includes('delhi')) {
-      data = {
-        location: 'Central Delhi',
-        station: 'Anand Vihar CPCB Continuous Ambient Air Quality Monitoring Station',
-        aqi: 284,
-        status: 'Poor',
-        pm25: 142,
-        pm10: 220,
-        advisory: 'Air quality is poor. Sensitive individuals and elders should wear N95 masks during morning commutes.',
-        isDemoData: true,
-        lastUpdated: new Date().toISOString(),
-      };
-    } else if (normalized.includes('guwahati') || normalized.includes('assam')) {
-      data = {
-        location: 'Guwahati, Panbazar',
-        station: 'Assam State Pollution Control Board Station',
-        aqi: 42,
-        status: 'Good',
-        pm25: 18,
-        pm10: 38,
-        advisory: 'Air quality is clean and satisfactory. Excellent conditions for outdoor activities.',
-        isDemoData: true,
-        lastUpdated: new Date().toISOString(),
-      };
-    } else if (normalized.includes('ahmedabad') || normalized.includes('ahmadabad') || normalized.includes('gujarat')) {
-      data = {
-        location: 'Ahmedabad, Maninagar',
-        station: 'GPCB Continuous Monitoring Station (representative)',
-        aqi: 118,
-        status: 'Moderate',
-        pm25: 52,
-        pm10: 104,
-        advisory: 'Air quality is moderate. Sensitive groups should limit prolonged outdoor exertion in peak traffic hours.',
-        isDemoData: true,
-        lastUpdated: new Date().toISOString(),
-      };
-    } else if (normalized.includes('pune')) {
-      data = {
-        location: 'Shivajinagar, Pune',
-        station: 'SAFAR Air Monitoring Centre Pune',
-        aqi: 72,
-        status: 'Satisfactory',
-        pm25: 32,
-        pm10: 64,
-        advisory: 'Air quality is acceptable with minor breathing discomfort possible for sensitive persons.',
-        isDemoData: true,
-        lastUpdated: new Date().toISOString(),
-      };
-    } else {
-      // Default: Mumbai
-      data = {
-        location: 'Mumbai, Bandra West',
-        station: 'CPCB Standard Station - Bandra Kurla Complex',
-        aqi: 68,
-        status: 'Satisfactory',
-        pm25: 29,
-        pm10: 58,
-        advisory: 'Air quality is satisfactory for most people. Outdoor sports and routine morning exercises remain safe.',
-        isDemoData: true,
-        lastUpdated: new Date().toISOString(),
-      };
-    }
+    // All live feeds failed: honest unavailable marker for the ACTUAL
+    // requested place — never another city's demo readings.
+    const data: AqiData = {
+      location: `${resolved.city}, ${resolved.district}`,
+      station: 'Live AQI feed unreachable',
+      aqi: 0,
+      status: 'Moderate',
+      pm25: 0,
+      pm10: 0,
+      advisory: 'Live air-quality feed unreachable right now. Follow CPCB bulletins for health guidance.',
+      isDemoData: true,
+      lastUpdated: new Date().toISOString(),
+    };
 
     aqiCache.set(normalized, { data, timestamp: Date.now() });
     return data;

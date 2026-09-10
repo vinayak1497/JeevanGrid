@@ -164,7 +164,7 @@ async function fetchBoundary(
 
 export class GeoOverlaysService {
   public async getOverlays(locationQuery: string): Promise<GeoOverlays> {
-    const resolved = geoService.resolveLocation(locationQuery);
+    const resolved = await geoService.resolveLocationLive(locationQuery);
     const key = `${resolved.lat.toFixed(3)},${resolved.lng.toFixed(3)}`;
     const cached = cache.get(key);
     if (cached && Date.now() - cached.ts < TTL) return cached.data;

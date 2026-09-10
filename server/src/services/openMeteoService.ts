@@ -79,14 +79,18 @@ export class OpenMeteoService {
   }
 
   public async getCurrentWeather(locationQuery: string): Promise<LiveWeather | null> {
-    const resolved = geoService.resolveLocation(locationQuery);
-    const key = `${resolved.lat.toFixed(3)},${resolved.lng.toFixed(3)}`;
+    const resolved = await geoService.resolveLocationLive(locationQuery);
+    return this.getCurrentWeatherForCoords(resolved.lat, resolved.lng);
+  }
+
+  public async getCurrentWeatherForCoords(lat: number, lng: number): Promise<LiveWeather | null> {
+    const key = `${lat.toFixed(3)},${lng.toFixed(3)}`;
     const cached = weatherCache.get(key);
     if (cached && Date.now() - cached.ts < WX_TTL) return cached.data;
 
     try {
       const url =
-        `${this.wxBase}/v1/forecast?latitude=${resolved.lat}&longitude=${resolved.lng}` +
+        `${this.wxBase}/v1/forecast?latitude=${lat}&longitude=${lng}` +
         `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m` +
         `&daily=precipitation_sum,precipitation_probability_max&timezone=auto&forecast_days=2`;
       const raw: any = await fetchJson(url);
@@ -114,14 +118,18 @@ export class OpenMeteoService {
    * docs: https://open-meteo.com/en/docs/air-quality-api
    */
   public async getCurrentAirQuality(locationQuery: string): Promise<LiveAirQuality | null> {
-    const resolved = geoService.resolveLocation(locationQuery);
-    const key = `${resolved.lat.toFixed(3)},${resolved.lng.toFixed(3)}`;
+    const resolved = await geoService.resolveLocationLive(locationQuery);
+    return this.getCurrentAirQualityForCoords(resolved.lat, resolved.lng);
+  }
+
+  public async getCurrentAirQualityForCoords(lat: number, lng: number): Promise<LiveAirQuality | null> {
+    const key = `${lat.toFixed(3)},${lng.toFixed(3)}`;
     const cached = aqCache.get(key);
     if (cached && Date.now() - cached.ts < AQ_TTL) return cached.data;
 
     try {
       const url =
-        `${this.aqBase}/v1/air-quality?latitude=${resolved.lat}&longitude=${resolved.lng}` +
+        `${this.aqBase}/v1/air-quality?latitude=${lat}&longitude=${lng}` +
         `&current=us_aqi,pm2_5,pm10&timezone=auto`;
       const raw: any = await fetchJson(url);
       const cur = raw.current || {};
@@ -149,6 +157,29 @@ export class OpenMeteoService {
     if (aqi <= 200) return 'Poor';
     if (aqi <= 300) return 'Very Poor';
     return 'Severe';
+  }
+
+  /**
+   * 72h observed rainfall for vector/waterborne suitability.
+   * Reuses the same Open-Meteo transport (no duplication): daily
+   * precipitation_sum with past_days=3. Returns null on any failure.
+   */
+  public async getPrecipitation72hForCoords(lat: number, lng: number): Promise<number | null> {
+    try {
+      const url =
+        `${this.wxBase}/v1/forecast?latitude=${lat}&longitude=${lng}` +
+        `&daily=precipitation_sum&timezone=auto&past_days=3&forecast_days=1`;
+      const raw: any = await fetchJson(url);
+      const sums: number[] = raw.daily?.precipitation_sum || [];
+      if (!sums.length) return null;
+      // Exclude today's still-accumulating entry; sum the 3 completed days.
+      const completed = sums.slice(0, 3);
+      const total = completed.reduce((a, v) => a + (Number(v) || 0), 0);
+      return Math.round(total * 10) / 10;
+    } catch (e) {
+      console.warn('Open-Meteo 72h rainfall unavailable:', (e as Error).message);
+      return null;
+    }
   }
 }
 

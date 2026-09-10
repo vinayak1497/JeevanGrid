@@ -56,24 +56,34 @@ export class OverpassService {
     limit = 24,
     includeEmergency = true
   ): Promise<{ facilities: LiveFacility[]; source: 'overpass' | 'none' }> {
-    const resolved = geoService.resolveLocation(locationQuery);
-    const key = `${resolved.lat.toFixed(3)},${resolved.lng.toFixed(3)},${radiusM}`;
+    const resolved = await geoService.resolveLocationLive(locationQuery);
+    return this.getFacilitiesForCoords(resolved.lat, resolved.lng, radiusM, limit, includeEmergency);
+  }
+
+  public async getFacilitiesForCoords(
+    lat: number,
+    lng: number,
+    radiusM = 10000,
+    limit = 24,
+    includeEmergency = true
+  ): Promise<{ facilities: LiveFacility[]; source: 'overpass' | 'none' }> {
+    const key = `${lat.toFixed(3)},${lng.toFixed(3)},${radiusM}`;
     const cached = cache.get(key);
     if (cached && Date.now() - cached.ts < TTL) {
       return { facilities: cached.data.slice(0, limit), source: 'overpass' };
     }
 
     const emergencyFrag = includeEmergency
-      ? `node(around:${radiusM},${resolved.lat},${resolved.lng})[amenity=fire_station];` +
-        `node(around:${radiusM},${resolved.lat},${resolved.lng})[amenity=police];`
+      ? `node(around:${radiusM},${lat},${lng})[amenity=fire_station];` +
+        `node(around:${radiusM},${lat},${lng})[amenity=police];`
       : '';
     const query =
       `[out:json][timeout:25];` +
-      `(node(around:${radiusM},${resolved.lat},${resolved.lng})[amenity=hospital];` +
-      `node(around:${radiusM},${resolved.lat},${resolved.lng})[amenity=clinic];` +
-      `node(around:${radiusM},${resolved.lat},${resolved.lng})[amenity=community_centre];` +
-      `node(around:${radiusM},${resolved.lat},${resolved.lng})[amenity=townhall];` +
-      `node(around:${radiusM},${resolved.lat},${resolved.lng})[amenity=school];` +
+      `(node(around:${radiusM},${lat},${lng})[amenity=hospital];` +
+      `node(around:${radiusM},${lat},${lng})[amenity=clinic];` +
+      `node(around:${radiusM},${lat},${lng})[amenity=community_centre];` +
+      `node(around:${radiusM},${lat},${lng})[amenity=townhall];` +
+      `node(around:${radiusM},${lat},${lng})[amenity=school];` +
       emergencyFrag + `);out 40;`;
 
     for (const endpoint of resolveEndpoints()) {
@@ -122,7 +132,7 @@ export class OverpassService {
                 openingHours: tags.opening_hours || undefined,
                 source: 'overpass' as const,
                 distanceKm:
-                  Math.round(haversineKm(resolved.lat, resolved.lng, Number(el.lat), Number(el.lon)) * 10) / 10,
+                  Math.round(haversineKm(lat, lng, Number(el.lat), Number(el.lon)) * 10) / 10,
               };
             })
             .sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999));

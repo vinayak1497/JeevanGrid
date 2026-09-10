@@ -35,7 +35,132 @@ model DisasterAlert {
   issuedAt    DateTime @default(now())
   expiresAt   DateTime?
   source      String   @default("IMD / NDMA")
-  status      String   @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
+  status      String   @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED, UPDATED, PENDING_VERIFICATION
+
+  // ── Provenance / source traceability (100% source traceability, never 100% accuracy) ──
+  sourceType     String    @default("OFFICIAL") // OFFICIAL | INTELLIGENCE | COMMUNITY
+  sourceAlertId  String?                       // upstream identifier (CAP identifier, etc.)
+  sourceUrl      String?                       // original bulletin URL / CAP link
+  sourceReference String?                      // feed reference / RSS guid
+  authority      String?                       // issuing authority display name (e.g. "India Meteorological Department")
+  sender         String?                       // CAP sender
+  eventType      String?                       // CAP event
+  urgency        String?                       // CAP urgency
+  certainty      String?                       // CAP certainty
+  msgType        String?                       // CAP msgType: Alert | Update | Cancel | Ack | Error
+  scope          String?                       // CAP scope
+  category       String?                       // CAP category
+  language       String?   @default("en")
+  headline       String?
+  instruction    String?
+  effectiveAt    DateTime?
+  onsetAt        DateTime?
+  affectedAreas  String?                       // JSON string array
+  geometry       String?                       // GeoJSON / polygon-circle string
+  rawPayload     String?                       // original machine-readable source payload (JSON)
+  isVerified     Boolean   @default(false)
+  isLive         Boolean   @default(false)
+  isDemoData     Boolean   @default(false)
+  ingestedAt     DateTime  @default(now())
+  lastCheckedAt  DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([source, sourceAlertId])
+  @@index([status, expiresAt])
+  @@index([sourceType, isVerified, isDemoData, status])
+  @@index([expiresAt])
+  @@index([source])
+  @@index([sourceAlertId])
+}
+
+// ── Alert source registry: health + sync bookkeeping per authoritative source ──
+model AlertSourceState {
+  name            String    @id // SACHET | IMD | CWC | INCOIS
+  authority       String
+  enabled         Boolean   @default(true)
+  status          String    @default("UNAVAILABLE") // HEALTHY | DEGRADED | UNAVAILABLE | CONFIGURATION_REQUIRED
+  feedUrl         String?
+  etag            String?
+  lastModified    String?
+  lastAttemptAt   DateTime?
+  lastSuccessAt   DateTime?
+  lastDataAt      DateTime?
+  lastError       String?
+  responseTimeMs  Int?
+  recordsFetched  Int       @default(0)
+  recordsAccepted Int       @default(0)
+  recordsRejected Int       @default(0)
+  updatedAt       DateTime  @updatedAt
+}
+
+// ── ETag / feed body cache (SACHET 304 handling) ──
+model AlertFeedCache {
+  id           String   @id @default(uuid())
+  sourceName   String   @unique
+  etag         String?
+  lastModified String?
+  body         String?
+  updatedAt    DateTime @updatedAt
+}
+
+// ── Audit log for every alert lifecycle change (accountability) ──
+model AlertAuditLog {
+  id            String   @id @default(uuid())
+  timestamp     DateTime @default(now())
+  action        String   // CREATED | UPDATED | CANCELLED | EXPIRED | VERIFIED | REJECTED
+  source        String
+  sourceAlertId String?
+  alertId       String?
+  reason        String?
+  metadata      String?
+
+  @@index([source, sourceAlertId])
+  @@index([alertId])
+  @@index([timestamp])
+}
+
+// ── District-level official-warning subscriptions (Phase 11) ──
+// District granularity only — precise user locations are never stored.
+model AlertSubscription {
+  id                  String   @id @default(uuid())
+  userId              String
+  district            String
+  state               String   @default("")
+  notificationEnabled Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([userId, district])
+  @@index([district])
+  @@index([userId])
+}
+
+// ── Web Push endpoint subscriptions (Phase 12) ──
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  district  String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([district])
+}
+
+// ── Push delivery log: exactly-once notification per alert × endpoint ──
+model AlertNotificationLog {
+  id            String   @id @default(uuid())
+  source        String
+  sourceAlertId String
+  endpointHash  String
+  action        String   // NEW | UPDATED
+  sentAt        DateTime @default(now())
+
+  @@unique([source, sourceAlertId, endpointHash, action])
+  @@index([sourceAlertId])
 }
 
 model EmergencyReport {
@@ -169,4 +294,24 @@ model WeatherSnapshot {
   aqi             Int
   aqiStatus       String
   recordedAt      DateTime @default(now())
+}
+
+// ── Climate → Health Intelligence assessments (no personal health data) ──
+model HealthAssessment {
+  id             String   @id @default(uuid())
+  location       String
+  district       String
+  state          String
+  latitude       Float
+  longitude      Float
+  inputSnapshot  String   // JSON: climate/air/flood inputs
+  riskScores     String   // JSON: per-indicator { level, score }
+  interpretation String?  // JSON: Nugen interpretation (null when unavailable)
+  nugenModel     String?
+  confidence     String   // HIGH | MEDIUM | LOW | INSUFFICIENT
+  isScenario     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([district, createdAt])
+  @@index([createdAt])
 }

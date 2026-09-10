@@ -136,6 +136,49 @@ export const DistrictDashboard: React.FC = () => {
           </div>
         </div>
 
+        {/* Official warnings affecting this district — staging starts here */}
+        <div className="bg-surface-container-lowest rounded-2xl p-space-lg border border-outline-variant/30 shadow-sm">
+          <div className="flex items-center justify-between mb-space-sm">
+            <h2 className="font-headline-sm text-sm font-bold text-on-surface flex items-center gap-2">
+              <span className="material-symbols-outlined text-error text-[18px]">campaign</span>
+              <span>Official Warnings — {data?.district}</span>
+            </h2>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+              {(data?.officialAlerts || []).length > 0
+                ? `● Live · ${data.officialAlerts.length} active`
+                : '○ No active warnings'}
+            </span>
+          </div>
+          {(data?.officialAlerts || []).length === 0 ? (
+            <p className="text-[11px] text-on-surface-variant">
+              No verified official warnings for this district right now. Staging actions below create
+              JeevanGrid operational records — they do not issue warnings.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {(data?.officialAlerts || []).slice(0, 5).map((a: any) => (
+                <div key={a.id} className="p-3 rounded-lg bg-surface-container-low border border-outline-variant/20">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[10px] font-bold uppercase">
+                      {a.severity}
+                    </span>
+                    <span className="text-xs font-bold text-on-surface">{a.headline || a.title}</span>
+                  </div>
+                  <p className="text-[11px] text-on-surface-variant mt-1">{a.description}</p>
+                  <div className="text-[10px] text-on-surface-variant mt-1">
+                    {a.authority || a.source} • Issued {a.issuedIST} • Valid until {a.validUntilIST || 'see bulletin'}
+                    {a.sourceUrl && (
+                      <a href={a.sourceUrl} target="_blank" rel="noreferrer" className="text-primary font-bold hover:underline ml-2">
+                        Official source ↗
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Incidents Triage split layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
           {/* Incident Queue (Left 5 cols) */}

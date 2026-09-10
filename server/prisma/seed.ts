@@ -93,6 +93,10 @@ async function main() {
   });
 
   console.log('Seeding disaster alerts...');
+  // NOTE: development/demo synthesis only. Rows are flagged isDemoData + unverified,
+  // so production official-alert APIs (ENABLE_DEMO_ALERTS=false) reject them.
+  // Real warnings are ingested automatically from SACHET/IMD/CWC/INCOIS — never
+  // insert production alerts by hand.
   await prisma.disasterAlert.createMany({
     data: [
       {
@@ -105,6 +109,10 @@ async function main() {
         latitude: 26.1445,
         longitude: 91.7362,
         source: 'IMD & CWC National Flood Telemetry',
+        sourceType: 'OFFICIAL',
+        isDemoData: true,
+        isVerified: false,
+        isLive: false,
       },
       {
         title: 'Flood Watch (North Bihar & East UP)',
@@ -116,6 +124,10 @@ async function main() {
         latitude: 26.1542,
         longitude: 85.8918,
         source: 'Central Water Commission (CWC)',
+        sourceType: 'OFFICIAL',
+        isDemoData: true,
+        isVerified: false,
+        isLive: false,
       },
       {
         title: 'Severe Heatwave Advisory (Central MP & Vidarbha)',
@@ -127,6 +139,10 @@ async function main() {
         latitude: 21.1458,
         longitude: 79.0882,
         source: 'IMD Regional Meteorological Centre',
+        sourceType: 'OFFICIAL',
+        isDemoData: true,
+        isVerified: false,
+        isLive: false,
       },
       {
         title: 'Cyclonic Depression Monitoring (East Central Bay of Bengal)',
@@ -138,6 +154,10 @@ async function main() {
         latitude: 19.8245,
         longitude: 86.6872,
         source: 'IMD Cyclone Warning Division',
+        sourceType: 'OFFICIAL',
+        isDemoData: true,
+        isVerified: false,
+        isLive: false,
       },
       {
         title: 'High Tide & Coastal Surge Advisory (Mumbai Coast)',
@@ -149,6 +169,10 @@ async function main() {
         latitude: 19.0760,
         longitude: 72.8777,
         source: 'MCGM Disaster Management Cell',
+        sourceType: 'OFFICIAL',
+        isDemoData: true,
+        isVerified: false,
+        isLive: false,
       },
       {
         title: 'Landslide Vulnerability Warning (Shimla & Mandi)',
@@ -160,6 +184,10 @@ async function main() {
         latitude: 31.1048,
         longitude: 77.1734,
         source: 'Geological Survey of India & SDMA',
+        sourceType: 'OFFICIAL',
+        isDemoData: true,
+        isVerified: false,
+        isLive: false,
       },
     ],
   });

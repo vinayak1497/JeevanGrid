@@ -45,8 +45,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
   const [currentLocation, setCurrentLocation] = useState('Mumbai');
   const [weatherData, setWeatherData] = useState<any>(null);
   const [aqiData, setAqiData] = useState<any>(null);
-  const [activeAlerts, setActiveAlerts] = useState<any[]>([]);
-  const [statusSummary, setStatusSummary] = useState<any>(null);
+  const [officialAlerts, setOfficialAlerts] = useState<any[]>([]);
+  const [officialStaleCount, setOfficialStaleCount] = useState(0);
+  const [officialLastSync, setOfficialLastSync] = useState<string | null>(null);
+  const [officialSources, setOfficialSources] = useState<any[]>([]);
   const [telemetryLoading, setTelemetryLoading] = useState(true);
 
   // Region Selector State
@@ -66,7 +68,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
   // Carousel ref
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  // Fetch telemetry from backend
+  // Fetch telemetry from backend — official warnings only (fail-closed).
+  // Seeded/demo records are never shown here.
   useEffect(() => {
     async function loadTelemetry() {
       setTelemetryLoading(true);
@@ -74,12 +77,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
         const [weatherRes, aqiRes, alertsRes] = await Promise.all([
           apiFetch(`/weather?location=${encodeURIComponent(currentLocation)}`),
           apiFetch(`/aqi?location=${encodeURIComponent(currentLocation)}`),
-          apiFetch('/alerts'),
+          apiFetch('/alerts/official'),
         ]);
         setWeatherData(weatherRes.weather);
         setAqiData(aqiRes.aqi);
-        setActiveAlerts(alertsRes.alerts || []);
-        setStatusSummary(alertsRes.summary || null);
+        setOfficialAlerts((alertsRes.alerts || []).slice(0, 4));
+        setOfficialStaleCount(alertsRes.staleCount || 0);
+        setOfficialLastSync(alertsRes.lastSuccessfulSync || null);
+        setOfficialSources(alertsRes.sources || []);
       } catch (err) {
         console.warn('Telemetry load error, using fallbacks:', err);
       } finally {
@@ -89,16 +94,36 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
     loadTelemetry();
   }, [currentLocation]);
 
-  // Handle GPS location detection
+  const officialSourceDown =
+    officialSources.length > 0 && officialSources.every((s: any) => s.status !== 'HEALTHY');
+
+  // Handle GPS location detection — reverse-geocode real coords via
+  // Nominatim so the forecast opens for the user's ACTUAL place.
   const handleDetectGPS = () => {
     setIsLocating(true);
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          // In India demo, map coordinates or provide realistic district
-          setSearchInput('Bandra West, Mumbai Suburban (400050)');
-          setCurrentLocation('Mumbai');
-          setIsLocating(false);
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
+              { headers: { Accept: 'application/json' } }
+            );
+            const raw: any = await res.json();
+            const addr = raw?.address || {};
+            const place =
+              addr.city || addr.town || addr.village || addr.suburb || addr.county || addr.state_district || '';
+            const state = addr.state ? `, ${addr.state}` : '';
+            const label = place ? `${place}${state}` : raw?.display_name?.split(',').slice(0, 2).join(',') || 'Current Location';
+            setSearchInput(label);
+            setCurrentLocation(label);
+          } catch {
+            setSearchInput('Bandra West, Mumbai Suburban (400050)');
+            setCurrentLocation('Mumbai');
+          } finally {
+            setIsLocating(false);
+          }
         },
         (error) => {
           // Graceful fallback if user denies or in testing environment
@@ -497,13 +522,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
               <div className="h-4 w-px bg-outline-variant hidden sm:block"></div>
               <div className="flex items-center gap-space-xs">
                 <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">
-                  {t('status.activeAlerts')}
+                  {telemetryLoading
+                    ? 'Checking official warnings…'
+                    : officialSourceDown
+                      ? 'Official source temporarily unavailable'
+                      : `${officialAlerts.length} verified official warning${officialAlerts.length === 1 ? '' : 's'}`}
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">
-                  {t('status.regionsAtRisk')}
+                  {officialLastSync
+                    ? `Synced ${new Date(officialLastSync).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
+                    : t('status.regionsAtRisk')}
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm hidden md:inline-flex">
-                  {t('status.advisories')}
+                  {officialStaleCount > 0
+                    ? `${officialStaleCount} stale withheld`
+                    : t('status.advisories')}
                 </span>
               </div>
             </div>
@@ -629,73 +662,46 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
                 </div>
 
                 <div className="flex flex-col gap-space-xs">
-                  {/* Alert 1 */}
-                  <Link
-                    to="/alerts"
-                    className="p-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-space-xs">
-                      <span className="material-symbols-outlined text-error text-[20px]">rainy</span>
-                      <div className="flex flex-col text-left">
-                        <span className="font-label-md text-label-md text-on-surface font-semibold">Heavy Rainfall</span>
-                        <span className="font-label-sm text-[11px] text-on-surface-variant">Assam, Meghalaya</span>
-                      </div>
+                  {telemetryLoading ? (
+                    <div className="p-space-sm text-[11px] text-on-surface-variant">
+                      Verifying warnings against authoritative sources…
                     </div>
-                    <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">
-                      Warning
-                    </span>
-                  </Link>
-
-                  {/* Alert 2 */}
-                  <Link
-                    to="/alerts"
-                    className="p-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-space-xs">
-                      <span className="material-symbols-outlined text-secondary text-[20px]">flood</span>
-                      <div className="flex flex-col text-left">
-                        <span className="font-label-md text-label-md text-on-surface font-semibold">Flood Watch</span>
-                        <span className="font-label-sm text-[11px] text-on-surface-variant">North Bihar &amp; East UP</span>
-                      </div>
+                  ) : officialSourceDown ? (
+                    <div className="p-space-sm rounded-lg bg-surface-container-low text-[11px] text-on-surface-variant">
+                      Official alert source temporarily unavailable. Last-known data is withheld until
+                      re-verified — never shown as live.
                     </div>
-                    <span className="px-2 py-0.5 rounded-full bg-surface-container-highest text-tertiary-container font-label-sm text-label-sm font-semibold">
-                      Watch
-                    </span>
-                  </Link>
-
-                  {/* Alert 3 */}
-                  <Link
-                    to="/alerts"
-                    className="p-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-space-xs">
-                      <span className="material-symbols-outlined text-outline text-[20px]">thermostat</span>
-                      <div className="flex flex-col text-left">
-                        <span className="font-label-md text-label-md text-on-surface font-semibold">Heatwave Index</span>
-                        <span className="font-label-sm text-[11px] text-on-surface-variant">Central MP &amp; Vidarbha</span>
-                      </div>
+                  ) : officialAlerts.length === 0 ? (
+                    <div className="p-space-sm rounded-lg bg-surface-container-low text-[11px] text-on-surface-variant">
+                      No verified official warnings active right now. JeevanGrid relays government
+                      warnings only — it does not generate its own.
                     </div>
-                    <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm font-semibold">
-                      Advisory
-                    </span>
-                  </Link>
-
-                  {/* Alert 4 */}
-                  <Link
-                    to="/alerts"
-                    className="p-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-space-xs">
-                      <span className="material-symbols-outlined text-tertiary text-[20px]">cyclone</span>
-                      <div className="flex flex-col text-left">
-                        <span className="font-label-md text-label-md text-on-surface font-semibold">Cyclone Low Pressure</span>
-                        <span className="font-label-sm text-[11px] text-on-surface-variant">East Central Bay of Bengal</span>
-                      </div>
-                    </div>
-                    <span className="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">
-                      Monitoring
-                    </span>
-                  </Link>
+                  ) : (
+                    officialAlerts.map((a: any) => (
+                      <Link
+                        key={a.id}
+                        to="/alerts"
+                        className="p-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-space-xs">
+                          <span className="material-symbols-outlined text-error text-[20px]">
+                            {String(a.hazardType || '').toLowerCase().includes('flood') ? 'flood' : String(a.hazardType || '').toLowerCase().includes('heat') ? 'thermostat' : String(a.hazardType || '').toLowerCase().includes('cyclone') ? 'cyclone' : 'rainy'}
+                          </span>
+                          <div className="flex flex-col text-left">
+                            <span className="font-label-md text-label-md text-on-surface font-semibold">
+                              {a.eventType || a.hazardType}
+                            </span>
+                            <span className="font-label-sm text-[11px] text-on-surface-variant">
+                              {a.district}, {a.state} • {a.authority || a.source}
+                            </span>
+                          </div>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-full font-label-sm text-label-sm font-semibold ${a.severity === 'CRITICAL' || a.severity === 'WARNING' ? 'bg-error-container text-on-error-container' : 'bg-surface-container-highest text-tertiary-container'}`}>
+                          {a.severity === 'CRITICAL' ? 'Critical' : a.severity === 'WARNING' ? 'Warning' : a.severity === 'WATCH' ? 'Watch' : 'Advisory'}
+                        </span>
+                      </Link>
+                    ))
+                  )}
                 </div>
               </div>
 

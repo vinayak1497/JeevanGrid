@@ -38,6 +38,9 @@ export const StateEocDashboard: React.FC = () => {
             </h1>
             <p className="text-xs text-on-surface-variant mt-0.5">
               SEOC Director: <strong>{user?.name || 'Smt. Ananya Sen'}</strong> • State Resilience Level 3 Active
+              {data?.lastSuccessfulSync
+                ? ` • Official warnings synced ${new Date(data.lastSuccessfulSync).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })}`
+                : ''}
             </p>
           </div>
         </div>
@@ -47,17 +50,17 @@ export const StateEocDashboard: React.FC = () => {
         {/* State Summary Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-space-md">
           <div className="p-space-md rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs flex flex-col">
-            <span className="text-[11px] font-bold text-on-surface-variant uppercase">Active Red/Orange Alerts</span>
+            <span className="text-[11px] font-bold text-on-surface-variant uppercase">Active Official Warnings</span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="font-display-lg text-2xl font-bold text-error">{data?.activeAlertsCount || 4}</span>
-              <span className="text-xs text-on-surface-variant">Districts</span>
+              <span className="font-display-lg text-2xl font-bold text-error">{data?.activeAlertsCount ?? '—'}</span>
+              <span className="text-xs text-on-surface-variant">Verified live</span>
             </div>
           </div>
 
           <div className="p-space-md rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs flex flex-col">
             <span className="text-[11px] font-bold text-on-surface-variant uppercase">Total Open Incidents</span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="font-display-lg text-2xl font-bold text-primary">{data?.totalStateIncidents || 2}</span>
+              <span className="font-display-lg text-2xl font-bold text-primary">{data?.totalStateIncidents ?? '—'}</span>
               <span className="text-xs text-on-surface-variant">Across state</span>
             </div>
           </div>
@@ -109,7 +112,7 @@ export const StateEocDashboard: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-3 px-3 font-code-num font-semibold">{d.activeIncidents}</td>
-                    <td className="py-3 px-3 font-code-num">{d.rainfallMm} mm</td>
+                    <td className="py-3 px-3 font-code-num">{d.rainfallMm ?? '—'}{d.rainfallMm != null ? ' mm' : ''}</td>
                     <td className="py-3 px-3 font-code-num">{d.shelterOccupancy}%</td>
                     <td className="py-3 px-3 font-medium text-on-surface-variant">{d.status}</td>
                   </tr>

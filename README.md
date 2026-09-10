@@ -34,6 +34,8 @@ navy/forest typography, restrained emergency red. No decoration that competes wi
 - [Quick start](#quick-start)
 - [Environment variables](#environment-variables)
 - [API reference](#api-reference)
+- [Early Warning System](#early-warning-system)
+- [Climate-Health Intelligence](#climate-health-intelligence)
 - [Demo accounts](#demo-accounts)
 - [Evaluation walkthrough](#evaluation-walkthrough)
 - [Deployment](#deployment)
@@ -105,7 +107,7 @@ How it is built:
 ```text
 ┌──────────────┐      ┌─────────────────────────────────┐
 │  client/     │      │  server/                        │
-│  React + Vite│─────▶│  Express + Prisma (SQLite)      │
+│  React + Vite│─────▶│  Express + Prisma (PostgreSQL)  │
 │  :3000 (dev) │ /api │  :5000 (dev)                    │
 └──────────────┘      └─────────────────────────────────┘
         │                        │
@@ -115,9 +117,14 @@ How it is built:
         ▼                        ▼
   ┌──────────────────────────────────────────────┐
   │  Live data: Open-Meteo · USGS · Overpass/OSM │
-  │  Official: SACHET/NDMA · IMD · INCOIS (linked)│
+  │  Official: SACHET/NDMA CAP feed (ingested) · │
+  │  IMD/CWC/INCOIS (fail-closed when unconfigured)│
   └──────────────────────────────────────────────┘
 ```
+
+> Product claim: **JeevanGrid relays and contextualizes verified warnings from
+> authoritative government sources.** It never claims 100% accuracy and never
+> generates official warnings.
 
 ---
 
@@ -142,24 +149,35 @@ JeevanGrid/
 │   │   ├── context/AuthContext.tsx# JWT auth + demo role switching
 │   │   ├── pages/                 # Landing, RiskDashboard, Assistant, Alerts, Guides,
 │   │   │                         # Resources, EmergencyReport, Login/Register
-│   │   └── pages/dashboards/      # District, Responder, Health, StateEOC, Volunteer
-│   ├── index.html / vite.config.ts# Port 3000, /api proxy, Indic font loading
-│   └── .env.example               # VITE_API_URL (production backend URL)
+│   │   ├── pages/dashboards/      # District, Responder, Health, StateEOC, Volunteer
+│   │   ├── utils/push.ts          # Web-Push subscribe helper (district alerts)
+│   │   ├── public/sw.js           # Push service worker (official-warning delivery)
+│   │   ├── index.html / vite.config.ts# Port 3000, /api proxy, Indic font loading
+│   │   └── .env.example               # VITE_API_URL (production backend URL)
 ├── server/                        # Backend (Node + Express + TypeScript)
-│   ├── prisma/schema.prisma       # SQLite schema: users, alerts, incidents, facilities…
-│   ├── prisma/seed.ts             # Realistic Indian demo data + demo users
+│   ├── prisma/schema.prisma       # PostgreSQL: users, alerts, incidents, facilities…
+│   ├── prisma/migrations/         # Tracked Postgres migrations (migrate deploy on release)
+│   ├── prisma/seed.ts             # Demo users/facilities + clearly-flagged demo alerts
 │   └── src/
 │       ├── index.ts               # App bootstrap, CORS, route mounting, /api/health
 │       ├── routes/                # auth, risk, weather, aqi, alerts, incidents,
 │       │                         # emergency-reports, field-reports, resources, guides,
-│       │                         # dashboards, geo, facilities, advisories, ai, language
+│       │                         # dashboards, geo, facilities, advisories, ai, language,
+│       │                         # subscriptions (alert + push), health-intelligence
 │       ├── controllers/           # Request validation + response shaping
+│       │                         # (alerts, officialAlerts, subscriptions, systemHealth,
+│       │                         # healthIntelligence, dashboards, facilities, geo…)
 │       ├── services/              # riskEngine, weather/aqi/quake, geo, facilities,
 │       │                         # nugen/deepseek, aiOrchestrator, speechService
+│       ├── services/ai/           # nugenHealthService (additive interpretation only)
+│       ├── services/health/       # ClimateHealthRiskEngine + healthAssessmentService + tests
+│       ├── services/alerts/       # Early-warning pipeline: ingestion, validation,
+│       │                         # normalization, dedup, expiry, scheduler, sources,
+│       │                         # notifications, officialAlertQuery, tests
 │       └── services/language/     # LanguageService + providers + aiLocal strings
 ├── Assets/                        # Source design assets (geo JSON, hero backgrounds)
 ├── Sitich/                        # Early design explorations (reference only)
-├── vercel.json                    # Frontend deploy config (Vercel + Vite)
+├── client/vercel.json             # SPA fallback rewrites (Vercel Root Directory = client/)
 ├── package.json                   # Monorepo scripts (dev / install:all / build / seed)
 └── README.md
 ```
@@ -171,8 +189,8 @@ JeevanGrid/
 | Layer | Technology |
 |---|---|
 | Frontend | React 18, TypeScript, Vite, Tailwind CSS, Framer Motion, Leaflet + OpenStreetMap, Recharts |
-| Backend | Node.js, Express, TypeScript, Prisma ORM, JWT, bcryptjs |
-| Database | SQLite (`server/prisma/dev.db`, local dev only — never committed) |
+| Backend | Node.js, Express, TypeScript, Prisma ORM, JWT, bcryptjs, web-push |
+| Database | PostgreSQL (Neon managed; `provider = "postgresql"` in `schema.prisma`) |
 | AI | Nugen aligned inference → DeepSeek → local NDMA-aligned engine (ordered fallback) |
 | Language | Static UI bundles + LanguageService (IndicTrans2 / Bhashini adapters, graceful fallback) |
 | Speech | Web Speech API (client fast path); server STT/TTS contracts ready |
@@ -194,8 +212,10 @@ npm run install:all
 # 3. Configure backend (required: JWT + database)
 cp server/.env.example server/.env
 # then edit server/.env — at minimum set JWT_SECRET to a long random string
+# and DATABASE_URL to your Postgres connection (Neon in production)
 
-# 4. Seed demo data (alerts, hospitals, shelters, users)
+# 4. Apply migrations + seed demo data (alerts, hospitals, shelters, users)
+npx prisma migrate deploy --schema server/prisma/schema.prisma
 npm run seed
 
 # 5. Run both servers (backend :5000, frontend :3000)
@@ -223,19 +243,25 @@ Backend — copy `server/.env.example` to `server/.env` (this file is git-ignore
 | Variable | Required | Purpose |
 |---|---|---|
 | `PORT` | No (default 5000) | Backend listen port |
-| `DATABASE_URL` | Yes | Prisma connection, e.g. `file:./dev.db` |
+| `DATABASE_URL` | Yes | Prisma Postgres connection, e.g. `postgresql://user:password@host:5432/neondb?sslmode=require` (Neon in production) |
 | `JWT_SECRET` | **Yes** | Long random secret for auth tokens |
 | `DEMO_MODE` | No | `true` enables demo role switching |
 | `NUGEN_API_KEY` / `NUGEN_ENDPOINT` | No | Nugen aligned inference (primary AI) |
+| `NUGEN_HEALTH_MODEL` | No (default `nugen-healthcare-india`) | Healthcare-domain model for Climate-Health interpretation (falls back safely, never required) |
 | `DEEPSEEK_API_KEY` | No | DeepSeek fallback (also reads legacy `Deepseek`) |
 | `OPEN_METEO_BASE_URL` | No | Weather provider base URL |
 | `AIR_QUALITY_API_KEY` | No | Air-quality provider key |
 | `USGS_EARTHQUAKE_API_URL` | No | Earthquake feed |
 | `OVERPASS_API_URL` | No | Live facility POIs |
 | `SACHET_BASE_URL` / `INCOIS_BASE_URL` | No | Official bulletin links |
+| `SACHET_ENABLED` / `SACHET_FEED_URL` / `SACHET_POLL_MINUTES` | No (defaults: on / official RSS / 10) | SACHET CAP ingestion tuning |
+| `IMD_ENABLED` / `IMD_API_BASE_URL` / `IMD_API_KEY` | No | Credentialed IMD warnings (fail-closed without) |
+| `CWC_ENABLED` / `CWC_API_KEY` / `INCOIS_ENABLED` / `INCOIS_API_KEY` | No | CWC / INCOIS sources (fail-closed without) |
+| `ENABLE_DEMO_ALERTS` | **Yes — `false` in production** | Backend-enforced demo exclusion from official APIs |
 | `INDICTRANS_BASE_URL` | No | Self-hosted IndicTrans2 endpoint (else skipped) |
 | `BHASHINI_API_KEY` / `BHASHINI_BASE_URL` | No | Bhashini translation (else skipped) |
 | `STT_PROVIDER` | No | Server speech-to-text provider id |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` | No | Web-Push delivery (`npx web-push generate-vapid-keys`); app works without |
 
 Frontend — copy `client/.env.example` to `client/.env` when needed:
 
@@ -257,14 +283,105 @@ Base URL: `/api` (dev) or `$VITE_API_URL` (production).
 | `POST /api/auth/register` · `POST /api/auth/login` · `GET /api/auth/me` | Auth (JWT) |
 | `GET /api/risk/:location` | Risk score, hazards, staging, contacts |
 | `GET /api/weather?location=` · `GET /api/aqi?location=` | Live telemetry |
-| `GET /api/alerts` | Active bulletins (filterable) |
+| `GET /api/alerts` | Legacy bulletins (demo-gated, expiry-enforced) |
+| `GET /api/alerts/official?state=&district=&hazardType=&severity=` | Verified official warnings (fail-closed) |
+| `GET /api/alerts/official/nearby?lat=&lon=&radiusKm=` | Location-aware official warnings |
+| `GET /api/alerts/official/district/:district` | District-targeted official warnings |
+| `GET /api/alerts/official/:id` | Single verified warning (gated) |
+| `POST /api/alerts/official/:id/stage` (EOC) | Stage district response → internal Incident + audit |
+| `POST /api/alerts/sync` (EOC) | Manual ingestion trigger (worker polls regardless) |
+| `GET /api/alerts/sources` | Source health (no-warnings vs unavailable) |
+| `GET /api/alerts/system/health` (EOC) | Pipeline ops view: sync, ETag, counts, audit |
+| `GET/POST /api/alert-subscriptions` · `DELETE /api/alert-subscriptions/:id` | District warning subscriptions (auth) |
+| `GET /api/push/vapid-public-key` · `POST/DELETE /api/push-subscriptions` | Web-Push endpoints (auth for write) |
 | `POST /api/emergency-reports` · `GET /api/incidents` · `PATCH /api/incidents/:id/...` | Triage pipeline |
 | `GET /api/resources/shelters` · `GET /api/resources/hospitals` | Facilities |
 | `POST /api/ai/chat` (`{messages, location?, coords?, language?}`) | Orchestrated assistant |
 | `GET /api/ai/status` · `POST /api/ai/transcribe` | Capability status, STT contract |
+| `GET /api/health-intelligence/assess?location=&nugen=` (Health/District/EOC) | Live Climate-Health assessment: deterministic indicators + additive Nugen interpretation |
+| `POST /api/health-intelligence/scenario` (Health/District/EOC) | Preparedness simulator (`rain25/rain50/heat2/aqi50`); always labeled scenario, never persisted |
 | `GET /api/languages` · `POST /api/language/detect` · `POST /api/language/translate` | Language service |
 | `POST /api/speech/synthesize` | Server TTS contract (501 until configured) |
 | `GET /api/dashboards/:scope` | District / health / state / volunteer aggregates |
+
+---
+
+## Early Warning System
+
+JeevanGrid does not generate or alter official warnings. It ingests authoritative
+warning data, preserves source provenance, verifies freshness, maps affected areas,
+and provides a citizen/EOC delivery layer.
+
+```text
+SACHET CAP RSS (+ CAP XML detail)
+  → fetchSachetFeed (ETag / If-None-Match, 304 = no reprocess)
+  → parse (RSS items + CAP XML) → validate (identifier, issue time, provenance)
+  → normalize (severity/event/area mapping, centroid, state hints)
+  → deduplicate (stable sourceAlertId) → reconcile (Alert/Update/Cancel)
+  → PostgreSQL (DisasterAlert, unique [source, sourceAlertId])
+  → expire sweep + freshness windows (LIVE vs STALE)
+  → /api/alerts/official (+ nearby / district / :id)
+  → Alerts UI (map markers, filters, provenance drawer)
+  → district subscriptions + Web-Push relay
+  → EOC staging (Incident + STAGED audit entry)
+```
+
+- **Sources:** NDMA SACHET CAP/RSS (live, keyless). IMD / CWC / INCOIS adapters are
+  fail-closed: without credentials they report `CONFIGURATION_REQUIRED` and yield
+  zero warnings — nothing is synthesized.
+- **Polling:** in-process scheduler (`alertScheduler`, default every 10 min via
+  `SACHET_POLL_MINUTES`, min 5) + hourly expiry sweep + `POST /api/alerts/sync`
+  (EOC roles). ETag caching means unchanged feeds cost one cheap 304.
+- **Lifecycle:** ACTIVE → UPDATED (same `sourceAlertId`, no duplicates) →
+  CANCELLED / EXPIRED. Every transition writes `AlertAuditLog`.
+- **Geography:** CAP polygons render as source geometry (`geometryPrecision:
+  EXACT`); district/LGD-style identifiers render as **District-level area**
+  markers — boundaries are never invented. `Assets/geo` ships name metadata only.
+- **Targeting:** `/official/nearby` combines centroid proximity with
+  reverse-geocoded district/state text matching; `/official/district/:district`
+  serves subscriptions and dashboards.
+- **Notifications:** district-level `AlertSubscription` + Web-Push endpoints
+  (`PushSubscription`). NEW/UPDATED warnings fan out exactly once per
+  alert × endpoint × action (`AlertNotificationLog`). Every push states
+  JeevanGrid is **relaying** an official warning. Without VAPID keys the app
+  functions normally.
+- **Fail-closed UX:** source outages show “Official alert source temporarily
+  unavailable”; stale rows are withheld from LIVE lists and counted separately.
+- **Separation:** Official Warnings / JeevanGrid Risk Intelligence / Community
+  Reports are never mixed in the UI or the API.
+- **Limitations:** district identifiers depend on source text quality; SACHET
+  rows without area detail resolve to state or “District-level area”; earthquake
+  feeds are observed events, never predictions.
+
+---
+
+## Climate-Health Intelligence
+
+Environmental health-risk indicators for Health Officers — **not diagnoses, not
+forecasts, not official warnings.** Deterministic calculations always run; the
+Nugen healthcare model only adds interpretation and can never override scores.
+
+```text
+geoService → Open-Meteo weather/AQI + 72h rain → riskEngine flood staging
+  → ClimateHealthRiskEngine (vector / heat / respiratory / waterborne, 0-100)
+  → Nugen interpretation (additive, labeled, fail-safe)
+  → HealthAssessment row (PostgreSQL) + 15-min cache
+  → /api/health-intelligence/assess → Health dashboard cards
+```
+
+- **Indicators:** vector-borne, heat stress (Rothfusz heat-index physics),
+  respiratory (AQI/PM), waterborne (rainfall + flood stage). Missing inputs yield
+  `INSUFFICIENT_DATA` — never a fabricated score.
+- **Vulnerability context:** nearby hospitals/beds from the facility registry.
+  Demographics are reported as unavailable, never estimated. No personal health
+  data is collected or stored.
+- **Scenario simulator:** `POST /api/health-intelligence/scenario` with presets
+  `rain25 | rain50 | heat2 | aqi50`. Responses are always labeled `scenario: true`
+  and are never persisted.
+- **Access:** `HEALTH_OFFICER`, `DISTRICT_OFFICER`, `STATE_EOC` only.
+- **Config:** optional `NUGEN_HEALTH_MODEL` (default `nugen-healthcare-india`);
+  without keys or on provider failure the deterministic assessment is returned
+  with a clearly-labeled unavailable interpretation.
 
 ---
 
@@ -295,43 +412,66 @@ Under 3 minutes, end to end:
 4. Press **Listen** to hear it; switch to Hindi mid-session and continue with the same context.
 5. **Report Emergency** → switch to District Officer → dispatch a responder → switch to Field Responder → accept, file SitRep, resolve.
 6. Inspect Health (`/dashboard/health`) and State EOC (`/dashboard/state`) aggregates.
+7. **Early warnings:** open **Alerts** → source-health panel → an alert card →
+   Source alert ID + issue/expiry times → **View Original Bulletin** → map marker →
+   district chip filter → **Notify me** (subscribe) → sign in as District Officer →
+   **Stage for District Response** → see the incident in `/dashboard/district`.
 
 ---
 
 ## Deployment
 
-**Frontend → Vercel (ready now)**
+**Frontend → Vercel**
 
-This repo ships a root `vercel.json` (Vite build from `client/`, output `client/dist`).
+The frontend lives in `client/` (Vite + React). SPA fallback rewrites ship in
+`client/vercel.json`.
 
 1. Import `vinayak1497/JeevanGrid` in Vercel.
-2. Keep the defaults from `vercel.json` (no extra configuration needed).
-3. Add environment variable `VITE_API_URL=https://<your-backend>/api`.
-4. Deploy. Every push to `main` redeploys automatically.
+2. Set **Root Directory = `client`** (required — this is a monorepo).
+3. Keep the detected Vite defaults: Build Command `npm run build`
+   (`tsc && vite build`), Output Directory `dist`.
+4. Add environment variable `VITE_API_URL=https://<your-backend>/api`.
+5. Deploy. Every push to `main` redeploys automatically.
 
-**Backend → Render / Railway / Fly (recommended)**
+Do not add a root `vercel.json` — Vercel must build from `client/` so the
+`dist` output and `/index.html` SPA rewrites resolve correctly. Local dev needs
+no env file (Vite proxies `/api` → `http://localhost:5000`).
 
-The Express API runs anywhere Node 18+ runs:
+**Backend → Render (recommended)**
 
-```bash
-# on the host
-npm install --prefix server
-npx prisma generate --schema server/prisma/schema.prisma
-npm run build --prefix server
-# start: node server/dist/index.js
-```
+The Express API lives in `server/` (Node 18+, TypeScript, Prisma + PostgreSQL).
+The alert ingestion worker runs in-process (`startAlertScheduler`), so one
+always-on instance is enough — no extra cron.
 
-Set all required env vars on the host (see table above), use a managed Postgres by
-changing `provider` + `DATABASE_URL` if you outgrow SQLite, then point the Vercel
-`VITE_API_URL` at it. For a Vercel-only footprint, the API can later be split into
-serverless functions — the route/controller/service separation already supports that.
+Render settings (Root Directory = `server/`):
+
+- Build Command:
+  `npm install && npx prisma generate && npm run build`
+- Start Command: `node dist/index.js`
+- Health Check Path: `/api/health`
+- On each release, run once:
+  `npx prisma migrate deploy --schema prisma/schema.prisma`
+  (never reset production data; new migrations in
+  `server/prisma/migrations/` apply forward-only).
+
+Set all required env vars on the host (see table above), at minimum
+`DATABASE_URL` (Neon Postgres), `JWT_SECRET` (long random string), and
+`ENABLE_DEMO_ALERTS=false` in production. Without AI/VAPID keys the app still
+runs (local safety engine + stored subscriptions; push delivery resumes once
+VAPID keys are set via `npx web-push generate-vapid-keys`). Then point the
+Vercel `VITE_API_URL` at the Render URL (`https://<service>.onrender.com/api`).
+On serverless hosts, call `POST /api/alerts/sync` (EOC) or keep one always-on
+instance for the scheduler. For a Vercel-only footprint, the API can later be
+split into serverless functions — the route/controller/service separation
+already supports that.
 
 ---
 
 ## Security notes
 
 - `server/.env` (real keys) and `*.db` files are git-ignored and **never committed**. Only `.env.example` templates ship.
-- All AI/language provider secrets stay server-side; the browser only ever sees `VITE_API_URL`.
+- All AI/language provider secrets, VAPID private keys and database credentials stay server-side; the browser only ever sees `VITE_API_URL` (the VAPID *public* key is served intentionally via `/api/push/vapid-public-key`).
+- Manual ingestion (`POST /api/alerts/sync`), system health and alert staging require EOC roles; health-intelligence assess/scenario require Health/District/EOC roles; official reads stay public.
 - Audio uploads, language codes, message lengths, and coordinates are validated; translation/speech failures degrade to safe fallbacks, never stack traces.
 - The AI never claims to dispatch rescue teams and never rewrites official warnings.
 
@@ -339,18 +479,20 @@ serverless functions — the route/controller/service separation already support
 
 ## Project status
 
-**Working today:** full citizen loop (forecast → alerts → report → triage → resolve), 5-language UI + AI + voice, role dashboards, live weather/AQI/quake feeds, honest provider fallbacks.
+**Working today:** full citizen loop (forecast → alerts → report → triage → resolve), 5-language UI + AI + voice, role dashboards, live weather/AQI/quake feeds, honest provider fallbacks, end-to-end early-warning pipeline (SACHET ingestion → verification → map → district targeting → push relay → EOC staging → audit), Climate-Health Intelligence (deterministic vector/heat/respiratory/waterborne indicators + additive Nugen interpretation + scenario simulator, Health-Officer gated).
 
-**Configured interface / awaiting credentials:** IndicTrans2 + Bhashini adapters, server STT/TTS providers.
+**Configured interface / awaiting credentials:** IndicTrans2 + Bhashini adapters, server STT/TTS providers, credentialed IMD/CWC/INCOIS warning APIs (fail-closed until keyed).
 
-**Roadmap:** per-user language preference sync, RTL-ready layout pass, Postgres migration guide, Vercel serverless split, Bhashini STT/TTS wiring, E2E language-matrix tests.
+**Roadmap:** per-user language preference sync, RTL-ready layout pass, Vercel serverless split, Bhashini STT/TTS wiring, E2E language-matrix tests.
 
 ---
 
 ## Data attribution
 
 JeevanGrid complements — never replaces — official authorities: NDMA, IMD, CWC, State EOCs/SEOCs.
-Live telemetry: Open-Meteo, USGS Earthquake Hazards Program, OpenStreetMap/Overpass, CPCB-aligned AQI.
+Official warnings: NDMA SACHET CAP/RSS feed (`https://sachet.ndma.gov.in/cap_public_website/rss/rss_india.xml`),
+relayed with full provenance (issuing authority, source alert ID, original bulletin link, issue/expiry times).
+Live telemetry: Open-Meteo, USGS Earthquake Hazards Program, OpenStreetMap/Overpass/Nominatim, CPCB-aligned AQI.
 During active red alerts, always follow directives from local state authorities first.
 
 ---

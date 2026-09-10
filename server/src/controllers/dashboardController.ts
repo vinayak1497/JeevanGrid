@@ -1,6 +1,8 @@
 import { Response } from 'express';
 import { prisma } from '../utils/prisma';
 import { AuthRequest } from '../middleware/authMiddleware';
+import { queryOfficialAlerts } from '../services/alerts/officialAlertQuery';
+import { getHealthAssessment } from '../services/health/healthAssessmentService';
 
 export async function getDistrictDashboard(req: AuthRequest, res: Response): Promise<void> {
   try {
@@ -36,6 +38,12 @@ export async function getDistrictDashboard(req: AuthRequest, res: Response): Pro
     const totalShelterCapacity = shelters.reduce((acc, s) => acc + s.capacity, 0);
     const totalShelterOccupancy = shelters.reduce((acc, s) => acc + s.currentOccupancy, 0);
 
+    // Official warnings affecting this officer's district (fail-closed:
+    // verified, non-expired, provenance-complete, freshly confirmed only).
+    // District staging starts here — this is JeevanGrid operational context,
+    // not a JeevanGrid-issued warning.
+    const official = await queryOfficialAlerts({ district, take: 50 }).catch(() => null);
+
     res.json({
       district,
       stats: {
@@ -49,11 +57,15 @@ export async function getDistrictDashboard(req: AuthRequest, res: Response): Pro
         totalAvailableIcu,
         totalShelterCapacity,
         totalShelterOccupancy,
+        activeOfficialWarnings: official ? official.alerts.length : null,
       },
       incidents,
       responders,
       hospitals,
       shelters,
+      officialAlerts: official ? official.alerts : [],
+      officialStaleCount: official ? official.staleCount : 0,
+      lastSuccessfulSync: official ? official.lastSuccessfulSync : null,
     });
   } catch (error) {
     console.error('District dashboard error:', error);
@@ -73,12 +85,17 @@ export async function getHealthDashboard(req: AuthRequest, res: Response): Promi
       hospitals.reduce((acc, h) => acc + h.oxygenStockDays, 0) / (hospitals.length || 1)
     ).toFixed(1);
 
-    const diseaseRiskIndicators = [
-      { condition: 'Waterborne Leptospirosis Watch', level: 'Moderate', district: 'Mumbai Suburban', status: 'Active Prophylaxis Dispensed' },
-      { condition: 'Vector-borne Dengue / Malaria', level: 'Low', district: 'Mumbai City', status: 'Larvicidal Spraying Active' },
-      { condition: 'Heat Exhaustion Cases', level: 'Advisory', district: 'Vidarbha Cluster', status: 'Cooling Stations Operational' },
-      { condition: 'Acute Diarrheal Disease (ADD)', level: 'Low', district: 'Thane Coastal', status: 'Chlorine Sachet Distribution' },
-    ];
+    // Real evidence-driven climate-health assessment for the officer's
+    // district (best-effort: never hardcoded, never blocking the dashboard).
+    const districtLabel = req.user?.district
+      ? `${req.user.district}, ${req.user?.state || ''}`.trim()
+      : 'Mumbai, Maharashtra';
+    const healthIntelligence = await getHealthAssessment(districtLabel, { withNugen: true }).catch(
+      (e) => {
+        console.warn('[health] dashboard assessment failed (non-fatal):', (e as Error).message.slice(0, 160));
+        return null;
+      }
+    );
 
     res.json({
       summary: {
@@ -91,7 +108,7 @@ export async function getHealthDashboard(req: AuthRequest, res: Response): Promi
         avgOxygenStockDays: parseFloat(avgOxygenDays),
       },
       hospitals,
-      diseaseRiskIndicators,
+      healthIntelligence,
     });
   } catch (error) {
     console.error('Health dashboard error:', error);
@@ -101,18 +118,60 @@ export async function getHealthDashboard(req: AuthRequest, res: Response): Promi
 
 export async function getStateEocDashboard(req: AuthRequest, res: Response): Promise<void> {
   try {
-    const alerts = await prisma.disasterAlert.findMany();
+    // Official warnings ONLY (fail-closed). Demo, expired, cancelled and
+    // unverified rows must never inflate the SEOC operational picture.
+    const official = await queryOfficialAlerts({ take: 200 }).catch(() => null);
+    const alerts = official ? official.alerts : [];
     const incidents = await prisma.incident.findMany();
     const resources = await prisma.resource.findMany();
+    const shelters = await prisma.shelter.findMany().catch(() => []);
 
-    const districtComparison = [
-      { district: 'Mumbai Suburban', riskLevel: 'MODERATE', activeIncidents: 2, rainfallMm: 72, shelterOccupancy: 45, status: 'Active Monitoring' },
-      { district: 'Thane', riskLevel: 'MODERATE', activeIncidents: 1, rainfallMm: 65, shelterOccupancy: 24, status: 'Normal Readiness' },
-      { district: 'Pune', riskLevel: 'LOW', activeIncidents: 0, rainfallMm: 28, shelterOccupancy: 12, status: 'Normal' },
-      { district: 'Raigad', riskLevel: 'WATCH', activeIncidents: 1, rainfallMm: 85, shelterOccupancy: 30, status: 'High Tide Watch' },
-      { district: 'Nagpur', riskLevel: 'WARNING', activeIncidents: 0, rainfallMm: 0, shelterOccupancy: 8, status: 'Heatwave Alert' },
-      { district: 'Ratnagiri', riskLevel: 'WATCH', activeIncidents: 0, rainfallMm: 95, shelterOccupancy: 18, status: 'Coastal Swell Watch' },
+    const shelterOccByDistrict = new Map<string, { occ: number; cap: number }>();
+    for (const s of shelters as any[]) {
+      const e = shelterOccByDistrict.get(s.district) || { occ: 0, cap: 0 };
+      e.occ += s.currentOccupancy || 0;
+      e.cap += s.capacity || 0;
+      shelterOccByDistrict.set(s.district, e);
+    }
+    const incidentsByDistrict = new Map<string, number>();
+    for (const i of incidents as any[]) {
+      incidentsByDistrict.set(i.district, (incidentsByDistrict.get(i.district) || 0) + 1);
+    }
+    const sevRank: Record<string, number> = { CRITICAL: 4, WARNING: 3, WATCH: 2, INFO: 1 };
+
+    const baseDistricts = [
+      'Mumbai Suburban',
+      'Thane',
+      'Pune',
+      'Raigad',
+      'Nagpur',
+      'Ratnagiri',
     ];
+    // Any district with live official warnings joins the table even if not listed.
+    for (const a of alerts as any[]) {
+      if (a.district && !baseDistricts.includes(a.district)) baseDistricts.push(a.district);
+    }
+
+    const districtComparison = baseDistricts.map((district) => {
+      const affecting = (alerts as any[]).filter(
+        (a) => a.district === district || (a.affectedArea || '').includes(district)
+      );
+      const top = affecting.sort((x, y) => (sevRank[y.severity] || 0) - (sevRank[x.severity] || 0))[0];
+      const occ = shelterOccByDistrict.get(district);
+      return {
+        district,
+        riskLevel: top ? top.severity : 'LOW',
+        activeIncidents: incidentsByDistrict.get(district) || 0,
+        // Live 24h rainfall per district would require 6+ weather calls per
+        // dashboard load; the risk engine already fuses it per location.
+        rainfallMm: null as number | null,
+        shelterOccupancy: occ && occ.cap ? Math.round((occ.occ / occ.cap) * 100) : 0,
+        status: top
+          ? `${top.hazardType} ${top.severity} — ${top.authority || top.source} (official)`
+          : 'Normal readiness',
+        activeOfficialWarnings: affecting.length,
+      };
+    });
 
     res.json({
       state: 'Maharashtra',
@@ -121,6 +180,8 @@ export async function getStateEocDashboard(req: AuthRequest, res: Response): Pro
       districtComparison,
       resources,
       alerts,
+      staleCount: official ? official.staleCount : 0,
+      lastSuccessfulSync: official ? official.lastSuccessfulSync : null,
     });
   } catch (error) {
     console.error('State EOC dashboard error:', error);

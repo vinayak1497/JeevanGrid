@@ -12,7 +12,7 @@ export interface FacilitiesBundle {
 
 /** Shared by the REST controller and the AI orchestrator. */
 export async function getFacilities(location: string): Promise<FacilitiesBundle> {
-  const resolved = geoService.resolveLocation(location);
+  const resolved = await geoService.resolveLocationLive(location);
   const [prismaHospitals, prismaShelters, live] = await Promise.all([
     prisma.hospital
       .findMany({
@@ -26,7 +26,7 @@ export async function getFacilities(location: string): Promise<FacilitiesBundle>
         take: 6,
       })
       .catch(() => []),
-    overpassService.getNearbyFacilities(location).catch(() => ({ facilities: [], source: 'none' as const })),
+    overpassService.getFacilitiesForCoords(resolved.lat, resolved.lng).catch(() => ({ facilities: [], source: 'none' as const })),
   ]);
   return {
     hospitals: prismaHospitals,

@@ -44,14 +44,25 @@ export class UsgsService {
     minMagnitude = 4,
     limit = 10
   ): Promise<QuakeSummary> {
-    const resolved = geoService.resolveLocation(locationQuery);
-    const key = `${resolved.lat.toFixed(2)},${resolved.lng.toFixed(2)},${radiusKm},${minMagnitude}`;
+    const resolved = await geoService.resolveLocationLive(locationQuery);
+    return this.getQuakesForCoords(resolved.city, resolved.lat, resolved.lng, radiusKm, minMagnitude, limit);
+  }
+
+  public async getQuakesForCoords(
+    locationLabel: string,
+    lat: number,
+    lng: number,
+    radiusKm = 500,
+    minMagnitude = 4,
+    limit = 10
+  ): Promise<QuakeSummary> {
+    const key = `${lat.toFixed(2)},${lng.toFixed(2)},${radiusKm},${minMagnitude}`;
     const cached = cache.get(key);
     if (cached && Date.now() - cached.ts < TTL) return cached.data;
 
     const empty: QuakeSummary = {
-      location: resolved.city,
-      searchCenter: { lat: resolved.lat, lng: resolved.lng },
+      location: locationLabel,
+      searchCenter: { lat, lng },
       radiusKm,
       minMagnitude,
       count: 0,
@@ -64,7 +75,7 @@ export class UsgsService {
     try {
       const url =
         `${this.baseUrl}?format=geojson` +
-        `&latitude=${resolved.lat}&longitude=${resolved.lng}` +
+        `&latitude=${lat}&longitude=${lng}` +
         `&maxradiuskm=${radiusKm}&minmagnitude=${minMagnitude}&limit=${limit}&orderby=time`;
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 12000);

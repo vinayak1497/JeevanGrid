@@ -15,6 +15,11 @@ export const RiskDashboardPage: React.FC<{ onOpenEmergencyModal: () => void }> =
   const [analysis, setAnalysis] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Keep the search box in sync when navigating between locations.
+  useEffect(() => {
+    setLocationInput(locationParam || 'Mumbai');
+  }, [locationParam]);
+
   // Live Data Engine panels (independent loading so one feed never blocks the page)
   const [quakes, setQuakes] = useState<any>(null);
   const [quakesLoading, setQuakesLoading] = useState(true);
@@ -650,6 +655,69 @@ export const RiskDashboardPage: React.FC<{ onOpenEmergencyModal: () => void }> =
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Live data provenance — which real feeds produced this assessment */}
+            {analysis.dataProvenance && (
+              <div className="bg-surface-container-lowest rounded-xl px-space-xl py-space-md shadow-sm border border-outline-variant/30 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-on-surface-variant">
+                <span className="font-bold text-on-surface uppercase tracking-wider">Live sources:</span>
+                <span>Geocoding: {analysis.dataProvenance.geocoding}</span>
+                <span>Weather: {analysis.dataProvenance.weather}</span>
+                <span>Air: {analysis.dataProvenance.airQuality}</span>
+                <span>Seismic: {analysis.dataProvenance.seismicity}</span>
+                <span className="font-semibold text-on-surface">{analysis.dataProvenance.officialAlerts}</span>
+                {analysis.isDemoData && (
+                  <span className="px-2 py-0.5 rounded-full bg-[#fef3c7] text-[#92400e] font-bold">OFFLINE SNAPSHOT — live feeds unreachable</span>
+                )}
+              </div>
+            )}
+
+            {/* Real official alerts for THIS location (verified government warnings only) */}
+            <div className="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm border border-outline-variant/30">
+              <div className="flex items-center justify-between mb-space-sm">
+                <h3 className="font-headline-sm text-base font-bold text-on-surface flex items-center gap-2">
+                  <span className="material-symbols-outlined text-error text-[20px]">campaign</span>
+                  <span>Official Alerts — {analysis.district || analysis.location}</span>
+                </h3>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+                  {(analysis.officialAlerts || []).length > 0 ? `● Live · ${(analysis.officialAlerts || []).length} active` : '○ No active alerts'}
+                </span>
+              </div>
+              {(analysis.officialAlerts || []).length > 0 ? (
+                <div className="flex flex-col gap-space-xs">
+                  {(analysis.officialAlerts || []).map((a: any) => (
+                    <div key={a.id} className="p-space-sm rounded-lg bg-surface-container-low border border-outline-variant/20">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${a.severity === 'CRITICAL' ? 'bg-error text-white' : a.severity === 'WARNING' ? 'bg-error-container text-on-error-container' : 'bg-surface-container-highest text-on-surface-variant'}`}>
+                          {a.severity}
+                        </span>
+                        <span className="text-xs font-bold text-on-surface">{a.headline || a.title}</span>
+                      </div>
+                      <p className="text-[11px] text-on-surface-variant leading-relaxed">{a.description}</p>
+                      {a.instruction && (
+                        <p className="text-[11px] text-on-surface mt-1"><strong>Instruction:</strong> {a.instruction}</p>
+                      )}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1.5 text-[10px] text-on-surface-variant">
+                        <span>Authority: <strong className="text-on-surface">{a.authority || a.source}</strong></span>
+                        {a.issuedIST && <span>Issued: {a.issuedIST}</span>}
+                        {a.sourceUrl && (
+                          <a href={a.sourceUrl} target="_blank" rel="noreferrer" className="text-primary font-bold hover:underline">
+                            View source bulletin ↗
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-on-surface-variant leading-relaxed">
+                  No active verified government alerts (SACHET / IMD / CWC / INCOIS) for{' '}
+                  <strong className="text-on-surface">{analysis.location}</strong> right now. The hazard
+                  profiles above are computed from live weather, air-quality and seismic observations for
+                  these exact coordinates ({analysis.coordinates?.lat?.toFixed(3)}, {analysis.coordinates?.lng?.toFixed(3)}).
+                  Always follow fresh IMD / DDMA bulletins before acting.
+                </p>
+              )}
             </div>
 
             {/* Interactive Map Section */}

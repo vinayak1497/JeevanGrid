@@ -9,7 +9,7 @@ import { getFacilities } from '../services/facilitiesService';
 export async function listFacilities(req: Request, res: Response): Promise<void> {
   try {
     const location = (req.query.location as string) || 'Mumbai';
-    const resolved = geoService.resolveLocation(location);
+    const resolved = await geoService.resolveLocationLive(location);
     const bundle = await getFacilities(location);
 
     res.json({
