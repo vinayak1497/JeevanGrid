@@ -14,6 +14,15 @@
   </a>
 </p>
 
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=Q66ZIVpUxCY">
+    <img
+      src="https://img.shields.io/badge/YouTube-Prototype%20Demo-FF0000?style=for-the-badge&logo=youtube&logoColor=white"
+      alt="Watch JeevanGrid Prototype Demo on YouTube"
+    />
+  </a>
+</p>
+
 JeevanGrid bridges the communication gap between Indian citizens and disaster management
 authorities during geological, meteorological, and hydrological emergencies — with live
 risk intelligence, official alert bulletins, rapid incident triage, role-based operational
