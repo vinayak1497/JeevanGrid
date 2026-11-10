@@ -7,7 +7,7 @@ export interface LiveWeather {
   windSpeedKph: number;
   rainProbability: number;
   precipitationMm24h: number;
-  source: 'open-meteo' | 'none';
+  source: 'open-meteo' | 'met-no' | 'none';
   observedAt: string;
 }
 

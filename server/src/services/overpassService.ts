@@ -18,6 +18,14 @@ export interface LiveFacility {
 const cache = new Map<string, { data: LiveFacility[]; ts: number }>();
 const TTL = 30 * 60 * 1000;
 
+/**
+ * When every mirror is unreachable the service must not retry all of them on
+ * every request — that is slow and floods the logs. Remember the failure
+ * briefly so callers get an immediate, honest "no live data" answer.
+ */
+const NEGATIVE_TTL = 5 * 60 * 1000;
+const negativeCache = new Map<string, { ts: number }>();
+
 export interface InfraCountResult {
   hospitals: number | null;
   schools: number | null;
@@ -27,8 +35,13 @@ export interface InfraCountResult {
 }
 
 const FALLBACK_ENDPOINTS = [
-  'https://overpass.kumi.systems/api/interpreter',
+  // Mirrors are tried in order. Some are region-scoped (osm.ch) and are only
+  // useful where they hold data, but they keep the integration alive when the
+  // global mirrors are rate-limited or unreachable from a datacenter IP.
   'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
+  'https://overpass.osm.ch/api/interpreter',
 ];
 
 function resolveEndpoints(): string[] {
@@ -79,6 +92,10 @@ export class OverpassService {
     const cached = cache.get(key);
     if (cached && Date.now() - cached.ts < TTL) {
       return { facilities: cached.data.slice(0, limit), source: 'overpass' };
+    }
+    const failed = negativeCache.get(key);
+    if (failed && Date.now() - failed.ts < NEGATIVE_TTL) {
+      return { facilities: [], source: 'none' };
     }
 
     const emergencyFrag = includeEmergency
@@ -153,9 +170,9 @@ export class OverpassService {
         console.warn(`Overpass (${endpoint}) unavailable:`, (e as Error).message);
       }
     }
+    negativeCache.set(key, { ts: Date.now() });
     return { facilities: [], source: 'none' };
   }
-
   /**
    * Counts hospitals, schools and major roads inside an Overpass poly filter.
    * Returns null for a category when Overpass is unavailable — callers must

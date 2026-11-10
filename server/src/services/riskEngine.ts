@@ -1,6 +1,8 @@
 import { prisma } from '../utils/prisma';
 import { geoService, type ResolvedLocation } from './geoService';
 import { openMeteoService, type LiveWeather, type LiveAirQuality } from './openMeteoService';
+import { metNorwayService } from './metNorwayService';
+import { firstAvailableProvider } from './weatherProviderChain';
 import { usgsService, type QuakeSummary } from './usgsService';
 import { normalizeTelemetry, computeRiskScore } from './dataNormalization';
 
@@ -130,8 +132,16 @@ export class RiskEngineService {
 
     // 2. Live telemetry for THESE coordinates (single source of truth —
     // coords-based calls so every feed uses identical lat/lng).
+    // Weather uses the provider chain: Open-Meteo rate-limits shared
+    // datacenter IPs, so MET Norway backs it up as a keyless second link.
     const [liveWeather, liveAqi, quakeSummary] = await Promise.all([
-      openMeteoService.getCurrentWeatherForCoords(resolved.lat, resolved.lng).catch(() => null),
+      firstAvailableProvider(
+        [
+          () => openMeteoService.getCurrentWeatherForCoords(resolved.lat, resolved.lng),
+          () => metNorwayService.getCurrentWeatherForCoords(resolved.lat, resolved.lng),
+        ],
+        () => undefined
+      ),
       openMeteoService.getCurrentAirQualityForCoords(resolved.lat, resolved.lng).catch(() => null),
       usgsService.getQuakesForCoords(resolved.city, resolved.lat, resolved.lng, 500, 4, 10).catch(() => null),
     ]);

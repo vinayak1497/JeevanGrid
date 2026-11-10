@@ -1,5 +1,7 @@
 import { openMeteoService } from './openMeteoService';
+import { metNorwayService } from './metNorwayService';
 import { geoService } from './geoService';
+import { firstAvailableProvider } from './weatherProviderChain';
 
 interface WeatherData {
   location: string;
@@ -31,34 +33,41 @@ export class WeatherService {
     const apiKey = process.env.WEATHER_API_KEY;
     const resolved = await geoService.resolveLocationLive(locationQuery);
 
-    // 1. Live observation: Open-Meteo (free, no key required) — same coords as geo.
-    try {
-      const live = await openMeteoService.getCurrentWeatherForCoords(resolved.lat, resolved.lng);
-      if (live) {
-        const severe =
-          live.condition.toLowerCase().includes('thunderstorm') || live.precipitationMm24h >= 100
-            ? `${live.condition} — intense precipitation observed in last 24h (${live.precipitationMm24h} mm)`
-            : live.rainProbability >= 80
-              ? `High rain probability (${live.rainProbability}%) — stay alert for waterlogging`
-              : undefined;
-        const result: WeatherData = {
-          location: `${resolved.city}, ${resolved.state}`,
-          state: resolved.state,
-          district: resolved.district,
-          temperature: live.temperature,
-          condition: live.condition,
-          humidity: live.humidity,
-          windSpeed: live.windSpeedKph,
-          rainProbability: live.rainProbability,
-          severeWarning: severe,
-          isDemoData: false,
-          lastUpdated: new Date().toISOString(),
-        };
-        weatherCache.set(normalized, { data: result, timestamp: Date.now() });
-        return result;
+    // Live observation chain. Open-Meteo is free but rate-limits shared
+    // datacenter IPs (HTTP 429); MET Norway is a keyless second link so a
+    // hosted instance still serves a real observation.
+    const live = await firstAvailableProvider(
+      [
+        () => openMeteoService.getCurrentWeatherForCoords(resolved.lat, resolved.lng),
+        () => metNorwayService.getCurrentWeatherForCoords(resolved.lat, resolved.lng),
+      ],
+      (error) => {
+        console.warn('Weather provider unavailable:', (error as Error)?.message || error);
       }
-    } catch (e) {
-      console.warn('Open-Meteo live weather failed, trying fallbacks:', e);
+    );
+
+    if (live) {
+      const severe =
+        live.condition.toLowerCase().includes('thunderstorm') || live.precipitationMm24h >= 100
+          ? `${live.condition} — intense precipitation observed in last 24h (${live.precipitationMm24h} mm)`
+          : live.rainProbability >= 80
+            ? `High rain probability (${live.rainProbability}%) — stay alert for waterlogging`
+            : undefined;
+      const result: WeatherData = {
+        location: `${resolved.city}, ${resolved.state}`,
+        state: resolved.state,
+        district: resolved.district,
+        temperature: live.temperature,
+        condition: live.condition,
+        humidity: live.humidity,
+        windSpeed: live.windSpeedKph,
+        rainProbability: live.rainProbability,
+        severeWarning: severe,
+        isDemoData: false,
+        lastUpdated: new Date().toISOString(),
+      };
+      weatherCache.set(normalized, { data: result, timestamp: Date.now() });
+      return result;
     }
 
     if (apiKey && apiKey.trim().length > 0) {

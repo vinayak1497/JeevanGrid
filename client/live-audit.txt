@@ -1,0 +1,17 @@
+﻿PASS  /                          Landing              clean
+PASS  /alerts                    Alerts               clean
+PASS  /guides                    Guides               clean
+PASS  /guides/flood              GuideDetail          clean
+PASS  /resources                 Resources            clean
+PASS  /risk/Mumbai               RiskDashboard        clean
+PASS  /report-emergency          EmergencyReport      clean
+PASS  /assistant                 Assistant            clean
+PASS  /login                     Login                clean
+PASS  /register                  Register             clean
+PASS  /dashboard/district        DistrictDashboard    clean
+PASS  /dashboard/responder       ResponderDashboard   clean
+PASS  /dashboard/health          HealthDashboard      clean
+PASS  /dashboard/state           StateEocDashboard    clean
+PASS  /dashboard/volunteer       VolunteerDashboard   clean
+
+15/15 routes clean at 360px

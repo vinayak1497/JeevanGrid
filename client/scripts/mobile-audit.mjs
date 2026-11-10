@@ -17,6 +17,8 @@ const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 
 const BASE = process.env.AUDIT_BASE_URL || 'http://localhost:3001';
+// When auditing a deployed frontend, auth must go to the API origin.
+const API_BASE = process.env.AUDIT_API_BASE_URL || BASE;
 const WIDTH = Number(process.env.AUDIT_WIDTH || 360);
 const HEIGHT = Number(process.env.AUDIT_HEIGHT || 740);
 
@@ -184,7 +186,7 @@ const run = async () => {
   let failures = 0;
 
   const login = async (email) => {
-    const res = await page.request.post(`${BASE}/api/auth/login`, {
+    const res = await page.request.post(`${API_BASE}/api/auth/login`, {
       data: { email, password: 'Password123!' },
     });
     if (!res.ok()) return null;
