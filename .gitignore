@@ -43,3 +43,7 @@ Thumbs.db
 .playwright-cli/
 client/.playwright-cli/
 *.tmp.js
+
+# Vercel CLI token (written by `vercel link`)
+.env.local
+client/.env.local
