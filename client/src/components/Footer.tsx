@@ -1,94 +1,185 @@
-import React from 'react';
+﻿import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useLanguage } from '../i18n/LanguageContext';
+
+interface FooterGroup {
+  heading: string;
+  links?: Array<{ label: string; to: string }>;
+  children?: React.ReactNode;
+}
 
 export const Footer: React.FC = () => {
   const { t } = useLanguage();
+  const reduce = useReducedMotion();
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+
+  const groups: FooterGroup[] = [
+    {
+      heading: t('footer.platform'),
+      links: [
+        { label: t('nav.home'), to: '/' },
+        { label: t('nav.disasters'), to: '/alerts' },
+        { label: t('nav.resources'), to: '/resources' },
+        { label: t('nav.assistant'), to: '/assistant' },
+      ],
+    },
+    {
+      heading: t('footer.preparedness'),
+      links: [
+        { label: 'Safety Protocols', to: '/guides' },
+        { label: 'Flood Evacuation Plans', to: '/guides/flood' },
+        { label: 'Cyclone Readiness', to: '/guides/cyclone' },
+        { label: 'Family Emergency Kits', to: '/guides/earthquake' },
+      ],
+    },
+  ];
+
+  const helplines = [
+    { label: 'Disaster Helpline (NDRF)', number: '1078', critical: false },
+    { label: 'Medical / Ambulance', number: '108', critical: false },
+    { label: 'National Emergency (Police)', number: '112', critical: true },
+    { label: 'Women Helpline', number: '1091', critical: false },
+  ];
+
+  const toggle = (heading: string) => setOpenGroup((current) => (current === heading ? null : heading));
+
   return (
-    <footer className="w-full bg-surface-container-low mt-space-3xl py-space-3xl border-t border-outline-variant/30">
-      <div className="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-space-xl mb-space-2xl">
-          {/* Brand Col */}
-          <div className="lg:col-span-2 flex flex-col gap-space-sm">
+    <footer className="mt-space-3xl w-full border-t border-outline-variant/30 bg-surface-container-low pb-[max(1.5rem,var(--jg-safe-bottom))] pt-space-xl">
+      <div className="jg-container px-[max(1rem,var(--jg-safe-left))]">
+        <div className="grid grid-cols-1 gap-space-xl md:grid-cols-2 lg:grid-cols-4">
+          {/* Brand */}
+          <div className="flex flex-col gap-space-sm lg:col-span-2">
             <div className="flex items-center gap-space-xs">
-              <img
-                alt="JeevanGrid Brand Logo"
-                className="h-7 w-auto object-contain"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0_F511bDxbm-42RdE_16-7A2-vX8jkKf-9E5obOVePqeyCQmsFGPDNiWB5qZiCCjQ75JK9ZB3LkOYwkApxB1iDJZ0UGohHLt5eexSUx9gkKhgcris0y0hj44TCKqwI3AeoHLUaTjZG7QqcD-xlJOWoyNPvBS1zT2gGfCv-MYhfpmCvhp1p8QUeGiENfXREL-5pplKGHuTUAe3tfd8jvp9WQEEn8cOfhNjVdlCk9YcEKypaIqGTrMx"
-              />
-              <span className="font-headline-sm text-headline-sm text-primary font-bold">JeevanGrid</span>
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-on-primary shadow-sm">
+                <span
+                  className="material-symbols-outlined text-[19px]"
+                  aria-hidden="true"
+                  style={{ fontVariationSettings: "'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24" }}
+                >
+                  shield
+                </span>
+              </span>
+              <span className="font-headline-sm text-headline-sm font-bold text-primary">JeevanGrid</span>
             </div>
-            <p className="font-body-sm text-body-sm text-on-surface-variant max-w-md">
+            <p className="max-w-md text-sm leading-relaxed text-on-surface-variant">
               {t('footer.tagline')}
             </p>
-            <div className="flex flex-wrap gap-space-xs mt-space-xs">
-              <div className="inline-flex items-center px-space-xs py-space-xxs rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">
-                <span className="w-2 h-2 rounded-full bg-surface-tint mr-1.5 animate-pulse"></span>
+            <div className="mt-1 flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant/40 bg-surface-container-highest px-2.5 py-1 text-[11px] font-semibold text-on-surface">
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-signal-live" aria-hidden="true">
+                  <span className="absolute inset-0 animate-signal-pulse rounded-full bg-signal-live" />
+                </span>
                 Operational Grid 99.98%
-              </div>
-              <div className="inline-flex items-center px-space-xs py-space-xxs rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">
-                <span className="material-symbols-outlined mr-1 text-[14px]">accessibility_new</span>
-                WCAG 2.1 AAA Compliant
-              </div>
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant/40 bg-surface-container-highest px-2.5 py-1 text-[11px] font-semibold text-on-surface">
+                <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+                  accessibility_new
+                </span>
+                WCAG 2.1 AAA
+              </span>
             </div>
           </div>
 
-          {/* Platform Links */}
-          <div className="flex flex-col gap-space-xs">
-            <h4 className="font-headline-sm text-headline-sm text-on-surface mb-space-xs font-semibold">{t('footer.platform')}</h4>
-            <Link to="/" className="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors">{t('nav.home')}</Link>
-            <Link to="/alerts" className="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors">{t('nav.disasters')}</Link>
-            <Link to="/resources" className="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors">{t('nav.resources')}</Link>
-            <Link to="/assistant" className="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors">{t('nav.assistant')}</Link>
-          </div>
+          {/* Link groups — stacked accordion on phones, columns on desktop */}
+          {groups.map((group) => {
+            const expanded = openGroup === group.heading;
+            return (
+              <div key={group.heading} className="flex flex-col">
+                <button
+                  type="button"
+                  onClick={() => toggle(group.heading)}
+                  aria-expanded={expanded}
+                  className="flex min-h-[44px] w-full items-center justify-between border-b border-outline-variant/25 text-left md:pointer-events-none md:border-none"
+                >
+                  <span className="text-sm font-bold text-on-surface">{group.heading}</span>
+                  <span
+                    className={`material-symbols-outlined text-[18px] text-on-surface-variant transition-transform duration-200 md:hidden ${
+                      expanded ? 'rotate-180' : ''
+                    }`}
+                    aria-hidden="true"
+                  >
+                    expand_more
+                  </span>
+                </button>
+                <AnimatePresence initial={false}>
+                  {expanded ? (
+                    <motion.div
+                      initial={reduce ? false : { height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={reduce ? undefined : { height: 0, opacity: 0 }}
+                      transition={{ duration: reduce ? 0 : 0.26, ease: [0.16, 1, 0.3, 1] }}
+                      className="overflow-hidden md:!h-auto md:!opacity-100"
+                    >
+                      <div className="flex flex-col gap-0.5 pb-2 pt-1">
+                        {group.links?.map((link) => (
+                          <Link
+                            key={link.to}
+                            to={link.to}
+                            className="flex min-h-[44px] items-center text-sm text-on-surface-variant transition-colors hover:text-on-surface"
+                          >
+                            {link.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+                {/* Desktop always-visible copy */}
+                <div className="hidden flex-col gap-0.5 md:flex">
+                  {group.links?.map((link) => (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      className="flex min-h-[44px] items-center text-sm text-on-surface-variant transition-colors hover:text-on-surface"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
 
-          {/* Preparedness */}
-          <div className="flex flex-col gap-space-xs">
-            <h4 className="font-headline-sm text-headline-sm text-on-surface mb-space-xs font-semibold">{t('footer.preparedness')}</h4>
-            <Link to="/guides" className="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors">Safety Protocols</Link>
-            <Link to="/guides/flood" className="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors">Flood Evacuation Plans</Link>
-            <Link to="/guides/cyclone" className="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors">Cyclone Readiness</Link>
-            <Link to="/guides/earthquake" className="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors">Family Emergency Kits</Link>
-          </div>
-
-          {/* Emergency Directory */}
-          <div className="flex flex-col gap-space-xs">
-            <h4 className="font-headline-sm text-headline-sm text-on-surface mb-space-xs font-semibold">{t('footer.directory')}</h4>
-            <div className="flex flex-col gap-space-xxs font-body-sm text-body-sm">
-              <div className="flex justify-between items-center py-space-xxs border-b border-outline-variant/20">
-                <span className="text-on-surface-variant text-xs">Disaster Helpline (NDRF)</span>
-                <a href="tel:1078" className="font-code-num text-code-num text-primary font-bold hover:underline">1078</a>
-              </div>
-              <div className="flex justify-between items-center py-space-xxs border-b border-outline-variant/20">
-                <span className="text-on-surface-variant text-xs">Medical / Ambulance</span>
-                <a href="tel:108" className="font-code-num text-code-num text-primary font-bold hover:underline">108</a>
-              </div>
-              <div className="flex justify-between items-center py-space-xxs border-b border-outline-variant/20">
-                <span className="text-on-surface-variant text-xs">National Emergency (Police)</span>
-                <a href="tel:112" className="font-code-num text-code-num text-error font-bold hover:underline">112</a>
-              </div>
-              <div className="flex justify-between items-center py-space-xxs">
-                <span className="text-on-surface-variant text-xs">Women Helpline</span>
-                <a href="tel:1091" className="font-code-num text-code-num text-primary font-bold hover:underline">1091</a>
-              </div>
+          {/* Emergency directory */}
+          <div className="flex flex-col">
+            <h3 className="text-sm font-bold text-on-surface">{t('footer.directory')}</h3>
+            <div className="mt-2 flex flex-col">
+              {helplines.map((line, index) => (
+                <div
+                  key={line.number}
+                  className={`flex items-center justify-between gap-3 py-2.5 ${
+                    index < helplines.length - 1 ? 'border-b border-outline-variant/25' : ''
+                  }`}
+                >
+                  <span className="min-w-0 text-xs leading-snug text-on-surface-variant">
+                    {line.label}
+                  </span>
+                  <a
+                    href={`tel:${line.number}`}
+                    className={`jg-code inline-flex min-h-[44px] shrink-0 items-center rounded-lg px-3 py-2 text-sm hover:underline ${
+                      line.critical ? 'text-error' : 'text-primary'
+                    }`}
+                  >
+                    {line.number}
+                  </a>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Bottom Legal & Accreditations */}
-        <div className="pt-space-lg border-t border-outline-variant/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md font-body-sm text-body-sm text-on-surface-variant">
-          <div className="flex flex-col gap-space-xxs max-w-2xl">
-            <p className="font-label-sm text-[11px] text-on-surface-variant leading-relaxed">
-              {t('footer.notice')}
-            </p>
-            <p className="font-label-sm text-[11px] text-on-surface-variant mt-1">
-              {t('footer.rights')}
-            </p>
+        <div className="mt-space-xl flex flex-col gap-3 border-t border-outline-variant/30 pt-space-lg md:flex-row md:items-start md:justify-between">
+          <div className="flex max-w-2xl flex-col gap-1">
+            <p className="text-[11px] leading-relaxed text-on-surface-variant">{t('footer.notice')}</p>
+            <p className="text-[11px] leading-relaxed text-on-surface-variant">{t('footer.rights')}</p>
           </div>
-          <div className="flex items-center gap-space-md text-xs">
-            <span className="text-secondary font-medium">Calm Authority</span>
-            <span>•</span>
-            <span className="text-primary font-medium">Civic Solace</span>
+          <div className="flex shrink-0 items-center gap-2 text-xs">
+            <span className="font-medium text-secondary">Calm Authority</span>
+            <span className="text-outline-variant" aria-hidden="true">
+              ·
+            </span>
+            <span className="font-medium text-primary">Civic Solace</span>
           </div>
         </div>
       </div>

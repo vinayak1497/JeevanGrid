@@ -15,6 +15,31 @@ export function listGeoDistricts(req: Request, res: Response): void {
   res.json({ districts: geoService.listDistricts(state), geometry: geoService.geometryStatus() });
 }
 
+export async function reverseGeo(req: Request, res: Response): Promise<void> {
+  const lat = Number(req.query.lat);
+  const lng = Number(req.query.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    res.status(400).json({ error: 'Valid lat (-90..90) and lng (-180..180) query params are required.' });
+    return;
+  }
+  try {
+    const location = await geoService.reverseLocation(lat, lng);
+    if (!location) {
+      res.status(502).json({
+        error: 'Reverse geocoding is temporarily unavailable. The coordinates were kept; enter an address manually.',
+        coordinates: { latitude: lat, longitude: lng },
+      });
+      return;
+    }
+    res.json({ location });
+  } catch {
+    res.status(502).json({
+      error: 'Reverse geocoding is temporarily unavailable. The coordinates were kept; enter an address manually.',
+      coordinates: { latitude: lat, longitude: lng },
+    });
+  }
+}
+
 export function nearestGeo(req: Request, res: Response): void {
   const lat = Number(req.query.lat);
   const lng = Number(req.query.lng);

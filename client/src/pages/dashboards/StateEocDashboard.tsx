@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
@@ -22,11 +22,11 @@ export const StateEocDashboard: React.FC = () => {
   }, []);
 
   if (loading) {
-    return <div className="pt-28 pb-20 text-center text-xs text-on-surface-variant">Loading State Operations Grid...</div>;
+    return <div className="jg-page flex min-h-[70dvh] items-center justify-center text-center text-xs text-on-surface-variant">Loading State Operations Grid...</div>;
   }
 
   return (
-    <main className="w-full pt-20 pb-space-3xl min-h-screen bg-surface">
+    <main className="jg-page min-h-[100dvh] bg-surface pb-space-3xl">
       <section className="bg-surface-container-low py-space-lg border-b border-outline-variant/30">
         <div className="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop flex flex-col md:flex-row md:items-center justify-between gap-space-md">
           <div>

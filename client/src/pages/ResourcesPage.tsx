@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../api/client';
 
@@ -31,11 +31,11 @@ export const ResourcesPage: React.FC<{ onOpenEmergencyModal: () => void }> = ({ 
   }, []);
 
   return (
-    <main className="w-full pt-20 pb-space-3xl min-h-screen bg-surface">
+    <main className="jg-page min-h-[100dvh] bg-surface pb-space-3xl">
       <section className="bg-surface-container-low py-space-xl border-b border-outline-variant/30">
         <div className="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop">
           <div className="flex items-center gap-2 mb-1">
-            <Link to="/" className="text-xs text-on-surface-variant hover:text-on-surface">Home</Link>
+            <Link to="/" className="inline-flex min-h-[44px] items-center text-xs text-on-surface-variant hover:text-on-surface">Home</Link>
             <span>/</span>
             <span className="text-xs text-primary font-bold">Civic Infrastructure</span>
           </div>
@@ -46,37 +46,32 @@ export const ResourcesPage: React.FC<{ onOpenEmergencyModal: () => void }> = ({ 
             Vetted civic installations, emergency medical capacities, and relief logistics maintained across municipal wards.
           </p>
 
-          <div className="flex gap-space-sm mt-space-lg">
-            <button
-              onClick={() => setActiveTab('shelters')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                activeTab === 'shelters'
-                  ? 'bg-primary text-on-primary shadow-xs'
-                  : 'bg-surface-container-lowest text-on-surface hover:bg-surface-container'
-              }`}
-            >
-              Public Shelters ({shelters.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('hospitals')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                activeTab === 'hospitals'
-                  ? 'bg-primary text-on-primary shadow-xs'
-                  : 'bg-surface-container-lowest text-on-surface hover:bg-surface-container'
-              }`}
-            >
-              Emergency Hospitals ({hospitals.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('inventory')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                activeTab === 'inventory'
-                  ? 'bg-primary text-on-primary shadow-xs'
-                  : 'bg-surface-container-lowest text-on-surface hover:bg-surface-container'
-              }`}
-            >
-              Relief Equipment ({inventory.length})
-            </button>
+          <div
+            role="tablist"
+            aria-label="Resource categories"
+            className="no-scrollbar mt-space-lg flex gap-space-sm overflow-x-auto"
+          >
+            {(
+              [
+                ['shelters', `Public Shelters (${shelters.length})`],
+                ['hospitals', `Emergency Hospitals (${hospitals.length})`],
+                ['inventory', `Relief Equipment (${inventory.length})`],
+              ] as const
+            ).map(([tab, label]) => (
+              <button
+                key={tab}
+                role="tab"
+                aria-selected={activeTab === tab}
+                onClick={() => setActiveTab(tab)}
+                className={`min-h-[44px] shrink-0 whitespace-nowrap rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+                  activeTab === tab
+                    ? 'bg-primary text-on-primary shadow-sm'
+                    : 'bg-surface-container-lowest text-on-surface hover:bg-surface-container'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
       </section>
@@ -116,7 +111,7 @@ export const ResourcesPage: React.FC<{ onOpenEmergencyModal: () => void }> = ({ 
                       </div>
                       <a
                         href={`tel:${s.contactPhone}`}
-                        className="px-3 py-1.5 rounded-lg bg-secondary text-on-secondary text-xs font-bold"
+                        className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-xl bg-secondary px-4 py-2 text-xs font-bold text-on-secondary"
                       >
                         Call Shelter
                       </a>
@@ -160,7 +155,7 @@ export const ResourcesPage: React.FC<{ onOpenEmergencyModal: () => void }> = ({ 
                       <span className="font-code-num font-semibold text-on-surface">{h.contactPhone}</span>
                       <a
                         href={`tel:${h.contactPhone}`}
-                        className="px-3 py-1.5 rounded-lg bg-primary text-on-primary text-xs font-bold"
+                        className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-xl bg-primary px-4 py-2 text-xs font-bold text-on-primary"
                       >
                         Call Hospital
                       </a>
@@ -194,7 +189,7 @@ export const ResourcesPage: React.FC<{ onOpenEmergencyModal: () => void }> = ({ 
                     </div>
                     <div className="mt-space-md pt-space-sm border-t border-outline-variant/20 flex items-center justify-between text-xs">
                       <span className="px-2 py-0.5 rounded-full bg-[#e9f3ed] text-primary text-[10px] font-bold">{r.status}</span>
-                      <a href={`tel:${r.contactPhone}`} className="text-primary font-bold hover:underline">
+                      <a href={`tel:${r.contactPhone}`} className="inline-flex min-h-[44px] items-center font-bold text-primary hover:underline">
                         Dispatch Line →
                       </a>
                     </div>

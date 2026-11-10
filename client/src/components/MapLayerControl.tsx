@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+﻿import React, { useEffect, useRef } from 'react';
 import {
   BASEMAPS,
   BASEMAP_ORDER,
@@ -138,7 +138,7 @@ export const MapLayerControl: React.FC<MapPanelProps> = ({
         onClick={() => (open ? hide() : show())}
         aria-expanded={open}
         aria-label="Map layers"
-        className={`absolute top-3 right-3 z-[500] inline-flex items-center gap-1.5 pl-2.5 pr-3 h-9 rounded-lg text-xs font-bold border transition-colors ${
+        className={`absolute top-3 right-3 z-[500] inline-flex min-h-[44px] items-center gap-1.5 pl-3 pr-3.5 rounded-xl text-xs font-bold border transition-colors ${
           open
             ? 'bg-primary-container text-on-primary border-transparent shadow-md'
             : 'bg-white text-on-surface border-outline-variant/50 shadow-md hover:bg-surface-container-low'
@@ -159,7 +159,7 @@ export const MapLayerControl: React.FC<MapPanelProps> = ({
             aria-label="Map view"
             className={`absolute z-[501] bg-white border border-outline-variant/50 shadow-xl rounded-2xl
               left-2 right-2 bottom-2 max-h-[70%] overflow-y-auto p-4
-              sm:left-auto sm:right-3 sm:top-14 sm:bottom-auto sm:w-[320px] sm:max-h-[calc(100%-4.5rem)]
+              sm:left-auto sm:right-3 sm:top-14 sm:bottom-auto sm:w-[320px] sm:max-h-[calc(100%_-_4.5rem)]
               transition-all duration-150 ease-out
               ${entered ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-1'}`}
           >
@@ -168,14 +168,14 @@ export const MapLayerControl: React.FC<MapPanelProps> = ({
               <div className="flex items-center gap-1">
                 <button
                   onClick={onResetView}
-                  className="px-2 py-1 rounded-md text-[11px] font-bold text-secondary hover:bg-surface-container-low transition-colors"
+                  className="min-h-[44px] px-3 py-2 rounded-xl text-xs font-bold text-secondary hover:bg-surface-container-low transition-colors"
                 >
                   Reset view
                 </button>
                 <button
                   onClick={hide}
                   aria-label="Close layer panel"
-                  className="w-7 h-7 rounded-md text-on-surface-variant hover:bg-surface-container-low flex items-center justify-center transition-colors"
+                  className="h-11 w-11 rounded-xl text-on-surface-variant hover:bg-surface-container-low flex items-center justify-center transition-colors"
                 >
                   <span className="material-symbols-outlined text-[18px]">close</span>
                 </button>
@@ -230,7 +230,7 @@ export const MapLayerControl: React.FC<MapPanelProps> = ({
                   onClick={() => onPreset(p.key)}
                   aria-pressed={preset === p.key}
                   title={p.description}
-                  className={`px-2 py-1.5 rounded-lg border text-xs font-bold transition-colors ${
+                  className={`min-h-[44px] px-3 py-2 rounded-xl border text-xs font-bold transition-colors ${
                     preset === p.key
                       ? 'bg-primary-container text-on-primary border-transparent'
                       : 'bg-surface-container-low text-on-surface border-outline-variant/30 hover:bg-surface-container'
@@ -251,7 +251,7 @@ export const MapLayerControl: React.FC<MapPanelProps> = ({
                   key={c}
                   onClick={() => onClarity(c)}
                   aria-pressed={clarity === c}
-                  className={`px-2 py-1.5 rounded-lg border text-[11px] font-bold capitalize transition-colors ${
+                  className={`min-h-[44px] px-3 py-2 rounded-xl border text-xs font-bold capitalize transition-colors ${
                     clarity === c
                       ? 'bg-surface-container-high text-primary border-primary/40'
                       : 'bg-surface-container-low text-on-surface-variant border-outline-variant/30'
@@ -316,7 +316,7 @@ export const MapOverlaysControl: React.FC<OverlaysPanelProps> = ({
         onClick={() => (open ? hide() : show())}
         aria-expanded={open}
         aria-label="Information layers"
-        className={`absolute top-[60px] right-3 z-[500] inline-flex items-center gap-1.5 pl-2.5 pr-3 h-9 rounded-lg text-xs font-bold border transition-colors ${
+        className={`absolute top-[60px] right-3 z-[500] inline-flex min-h-[44px] items-center gap-1.5 pl-3 pr-3.5 rounded-xl text-xs font-bold border transition-colors ${
           open
             ? 'bg-primary-container text-on-primary border-transparent shadow-md'
             : 'bg-white text-on-surface border-outline-variant/50 shadow-md hover:bg-surface-container-low'
@@ -342,7 +342,7 @@ export const MapOverlaysControl: React.FC<OverlaysPanelProps> = ({
             aria-label="Information layers"
             className={`absolute z-[501] bg-white border border-outline-variant/50 shadow-xl rounded-2xl
               left-2 right-2 bottom-2 max-h-[70%] overflow-y-auto p-4
-              sm:left-auto sm:right-3 sm:top-[104px] sm:bottom-auto sm:w-[320px] sm:max-h-[calc(100%-7.5rem)]
+              sm:left-auto sm:right-3 sm:top-[104px] sm:bottom-auto sm:w-[320px] sm:max-h-[calc(100%_-_7.5rem)]
               transition-all duration-150 ease-out
               ${entered ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-1'}`}
           >
@@ -351,7 +351,7 @@ export const MapOverlaysControl: React.FC<OverlaysPanelProps> = ({
               <button
                 onClick={hide}
                 aria-label="Close overlays panel"
-                className="w-7 h-7 rounded-md text-on-surface-variant hover:bg-surface-container-low flex items-center justify-center transition-colors"
+                className="h-11 w-11 rounded-xl text-on-surface-variant hover:bg-surface-container-low flex items-center justify-center transition-colors"
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
@@ -372,7 +372,7 @@ export const MapOverlaysControl: React.FC<OverlaysPanelProps> = ({
                     className="flex items-center gap-2.5 py-1.5 border-b border-outline-variant/20 last:border-0 text-left"
                   >
                     <span
-                      className={`w-9 h-5 rounded-full p-0.5 transition-colors shrink-0 flex ${on ? 'bg-secondary justify-end' : 'bg-outline-variant/60 justify-start'}`}
+                      className={`h-7 w-12 rounded-full p-0.5 transition-colors shrink-0 flex ${on ? 'bg-secondary justify-end' : 'bg-outline-variant/60 justify-start'}`}
                       aria-hidden="true"
                     >
                       <span className="w-4 h-4 rounded-full bg-white shadow" />
@@ -395,7 +395,7 @@ export const MapOverlaysControl: React.FC<OverlaysPanelProps> = ({
                 </p>
                 <div className="flex flex-col gap-1">
                   {legend.map((item) => (
-                    <span key={item.label} className="flex items-center gap-2 text-[11px] text-on-surface">
+                    <span key={item.label} className="flex min-w-0 flex-1 items-center gap-2 text-xs text-on-surface">
                       {item.shape === 'dot' && (
                         <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
                       )}

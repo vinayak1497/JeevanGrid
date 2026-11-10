@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { apiFetch } from '../api/client';
 
@@ -30,7 +30,7 @@ export const GuideDetailPage: React.FC<{ onOpenEmergencyModal: () => void }> = (
 
   if (loading) {
     return (
-      <div className="pt-32 pb-20 flex justify-center text-xs text-on-surface-variant min-h-screen">
+      <div className="jg-page flex min-h-[100dvh] items-center justify-center text-center text-xs text-on-surface-variant">
         Loading safety manual...
       </div>
     );
@@ -38,7 +38,7 @@ export const GuideDetailPage: React.FC<{ onOpenEmergencyModal: () => void }> = (
 
   if (!guide) {
     return (
-      <div className="pt-32 pb-20 text-center min-h-screen">
+      <div className="jg-page flex min-h-[100dvh] items-center justify-center text-center text-xs text-on-surface-variant">
         <h2 className="text-base font-bold mb-2">Guide not found</h2>
         <Link to="/guides" className="text-xs text-primary font-bold hover:underline">
           Return to All Guides
@@ -48,7 +48,7 @@ export const GuideDetailPage: React.FC<{ onOpenEmergencyModal: () => void }> = (
   }
 
   return (
-    <main className="w-full pt-20 pb-space-3xl min-h-screen bg-surface">
+    <main className="jg-page min-h-[100dvh] bg-surface pb-space-3xl">
       {/* Top Banner with Image */}
       <section className="relative w-full h-72 overflow-hidden bg-primary-container">
         <div
@@ -58,7 +58,7 @@ export const GuideDetailPage: React.FC<{ onOpenEmergencyModal: () => void }> = (
         <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/60 to-transparent" />
         <div className="relative z-10 max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop h-full flex flex-col justify-end pb-space-lg">
           <div className="flex items-center gap-2 mb-2 text-xs text-on-surface-variant">
-            <Link to="/guides" className="hover:text-on-surface">Guides</Link>
+            <Link to="/guides" className="inline-flex min-h-[44px] items-center hover:text-on-surface">Guides</Link>
             <span>/</span>
             <span className="text-primary font-bold">{guide.hazardType}</span>
           </div>
@@ -73,38 +73,33 @@ export const GuideDetailPage: React.FC<{ onOpenEmergencyModal: () => void }> = (
 
       {/* Main Content Area */}
       <div className="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop mt-space-lg">
-        {/* Navigation Tabs */}
-        <div className="flex border-b border-outline-variant/30 gap-space-md mb-space-xl">
-          <button
-            onClick={() => setActiveTab('phases')}
-            className={`pb-space-sm font-label-md text-xs font-bold transition-all border-b-2 ${
-              activeTab === 'phases'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            Chronological Phases (Before / During / After)
-          </button>
-          <button
-            onClick={() => setActiveTab('dos')}
-            className={`pb-space-sm font-label-md text-xs font-bold transition-all border-b-2 ${
-              activeTab === 'dos'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            Do's and Don'ts Checklist
-          </button>
-          <button
-            onClick={() => setActiveTab('kit')}
-            className={`pb-space-sm font-label-md text-xs font-bold transition-all border-b-2 ${
-              activeTab === 'kit'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            Emergency Kit Supplies
-          </button>
+        {/* Navigation Tabs — horizontally scrollable so no tab is ever cut off */}
+        <div
+          role="tablist"
+          aria-label="Guide sections"
+          className="no-scrollbar mb-space-xl flex gap-space-md overflow-x-auto border-b border-outline-variant/30"
+        >
+          {(
+            [
+              ['phases', 'Chronological Phases'],
+              ['dos', "Do's and Don'ts Checklist"],
+              ['kit', 'Emergency Kit Supplies'],
+            ] as const
+          ).map(([tab, label]) => (
+            <button
+              key={tab}
+              role="tab"
+              aria-selected={activeTab === tab}
+              onClick={() => setActiveTab(tab)}
+              className={`min-h-[44px] shrink-0 whitespace-nowrap border-b-2 pb-space-sm font-label-md text-xs font-bold transition-all ${
+                activeTab === tab
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-on-surface-variant hover:text-on-surface'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Tab 1: Chronological Phases */}
@@ -270,13 +265,13 @@ export const GuideDetailPage: React.FC<{ onOpenEmergencyModal: () => void }> = (
           <div className="flex items-center gap-2 shrink-0">
             <Link
               to="/assistant"
-              className="px-4 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-primary text-xs font-bold transition-colors"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-surface-container-high px-4 py-2 text-xs font-bold text-primary transition-colors hover:bg-surface-container-highest"
             >
               Ask AI About This
             </Link>
             <button
               onClick={onOpenEmergencyModal}
-              className="px-4 py-2 rounded-lg bg-error text-on-error text-xs font-bold hover:bg-[#991b1b] transition-colors"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-error px-4 py-2 text-xs font-bold text-on-error transition-colors hover:bg-[#991b1b]"
             >
               Emergency Helpline
             </button>

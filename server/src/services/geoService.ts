@@ -362,6 +362,53 @@ async function geocodeLive(query: string): Promise<ResolvedLocation | null> {
   }
 }
 
+export interface ReverseGeocodedLocation {
+  displayName: string;
+  locality: string;
+  district: string;
+  state: string;
+  latitude: number;
+  longitude: number;
+}
+
+/** Reverse geocode exact device/map coordinates; never invents an address. */
+async function reverseGeocodeLive(lat: number, lng: number): Promise<ReverseGeocodedLocation | null> {
+  try {
+    const url =
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}` +
+      `&lon=${lng}&zoom=18&addressdetails=1`;
+    const raw: any = await fetchJsonWithTimeout(url, 9000);
+    if (!raw || !raw.address) return null;
+    const addr = raw.address || {};
+    const locality =
+      addr.suburb ||
+      addr.neighbourhood ||
+      addr.hamlet ||
+      addr.village ||
+      addr.town ||
+      addr.city ||
+      addr.city_district ||
+      '';
+    const district =
+      addr.state_district ||
+      addr.county ||
+      addr.city_district ||
+      addr.city ||
+      '';
+    const state = addr.state || '';
+    return {
+      displayName: String(raw.display_name || [locality, district, state].filter(Boolean).join(', ')),
+      locality: String(locality || ''),
+      district: String(district || ''),
+      state: String(state || ''),
+      latitude: lat,
+      longitude: lng,
+    };
+  } catch {
+    return null;
+  }
+}
+
 function normalizeName(v: string): string {
   return (v || '')
     .normalize('NFD')
@@ -518,6 +565,18 @@ export class GeoService {
       return live;
     }
     return sync;
+  }
+
+  /**
+   * Reverse geocode device/map coordinates. Returns null when the upstream
+   * service is unavailable; callers must keep the coordinates and let the user
+   * enter an address instead of fabricating one.
+   */
+  public async reverseLocation(lat: number, lng: number): Promise<ReverseGeocodedLocation | null> {
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      return null;
+    }
+    return reverseGeocodeLive(lat, lng);
   }
 
   public listDistricts(stateFilter?: string): { district: string; state: string }[] {

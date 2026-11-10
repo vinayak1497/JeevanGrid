@@ -6,6 +6,7 @@ import { syncAllSources, syncSource } from '../services/alerts/alertIngestionSer
 import { expireStaleAlerts } from '../services/alerts/alertExpirationService';
 import { validateOfficialEligibility } from '../services/alerts/alertValidationService';
 import { writeAuditLog } from '../services/alerts/alertDeduplicationService';
+import { generateIncidentReference } from '../utils/idGenerator';
 import {
   queryOfficialAlerts,
   shapeOfficialAlert,
@@ -234,6 +235,7 @@ export async function stageOfficialAlert(req: any, res: Response): Promise<void>
     const officer = `${req.user?.name || 'District Officer'} (${req.user?.role || 'EOC'})`;
     const incident = await prisma.incident.create({
       data: {
+        referenceCode: generateIncidentReference(),
         title: `Response staging: ${row.eventType || row.hazardType} — ${row.district}, ${row.state}`,
         description:
           `JeevanGrid operational staging for OFFICIAL warning "${row.headline || row.title}" ` +
@@ -335,3 +337,44 @@ export async function getIntelligenceInfo(_req: Request, res: Response): Promise
     officialEndpoint: '/api/alerts/official',
   });
 }
+
+/**
+ * GET /api/alerts/demo-scenarios — explicitly labelled training records.
+ * These are never returned by /official and must never be presented as
+ * official warnings. Used only to exercise the acknowledgement workflow.
+ */
+export async function listDemoScenarioAlerts(_req: Request, res: Response): Promise<void> {
+  try {
+    const alerts = await prisma.disasterAlert.findMany({
+      where: { isDemoData: true },
+      orderBy: { issuedAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        hazardType: true,
+        severity: true,
+        district: true,
+        state: true,
+        source: true,
+        issuedAt: true,
+        expiresAt: true,
+      },
+    });
+    res.json({
+      alerts: alerts.map((alert) => ({
+        ...alert,
+        simulation: true,
+        label: 'SIMULATION',
+        disclaimer:
+          'Training/demo record. Not an official warning, not current hazard information, and not verified by JeevanGrid.',
+      })),
+      note: 'SIMULATION records only. Use /api/alerts/official for authoritative warnings.',
+    });
+  } catch (error) {
+    console.error('List demo scenarios error:', error);
+    res.status(500).json({ error: 'Failed to list simulation records.' });
+  }
+}
+

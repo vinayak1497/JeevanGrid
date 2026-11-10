@@ -45,6 +45,28 @@ export function authenticateToken(req: AuthRequest, res: Response, next: NextFun
   }
 }
 
+/**
+ * Identifies a signed-in citizen when a token is present, but keeps the public
+ * emergency-report submission route open to guests. Invalid tokens are treated
+ * as guest submissions rather than turning a life-safety report away.
+ */
+export function optionalAuth(req: AuthRequest, _res: Response, next: NextFunction): void {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
+  if (!token) {
+    next();
+    return;
+  }
+  try {
+    req.user = jwt.verify(token, JWT_SECRET) as any;
+  } catch {
+    // Treat an expired/invalid token as a guest submission. The report is
+    // still accepted; it is never silently attached to another account.
+    req.user = undefined;
+  }
+  next();
+}
+
 export function requireRole(...allowedRoles: string[]) {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {

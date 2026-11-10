@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../api/client';
 
@@ -21,12 +21,12 @@ export const GuidesPage: React.FC = () => {
   }, []);
 
   return (
-    <main className="w-full pt-20 pb-space-3xl min-h-screen bg-surface">
+    <main className="jg-page min-h-[100dvh] bg-surface pb-space-3xl">
       {/* Header Banner */}
       <section className="bg-surface-container-low py-space-xl border-b border-outline-variant/30">
         <div className="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop">
           <div className="flex items-center gap-2 mb-1">
-            <Link to="/" className="text-xs text-on-surface-variant hover:text-on-surface">Home</Link>
+            <Link to="/" className="inline-flex min-h-[44px] items-center text-xs text-on-surface-variant hover:text-on-surface">Home</Link>
             <span className="text-xs text-on-surface-variant">/</span>
             <span className="text-xs text-primary font-bold">Resilience Knowledge</span>
           </div>

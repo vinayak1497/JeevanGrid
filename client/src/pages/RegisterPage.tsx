@@ -29,7 +29,7 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <main className="w-full pt-28 pb-space-3xl min-h-screen bg-surface flex items-center justify-center px-4">
+    <main className="jg-page flex min-h-[100dvh] items-center justify-center bg-surface pb-space-3xl">
       <div className="bg-surface-container-lowest w-full max-w-md rounded-2xl p-space-xl shadow-lg border border-outline-variant/30 flex flex-col gap-space-md">
         <div className="text-center">
           <h1 className="font-headline-lg text-xl font-bold text-on-surface">Citizen Registration</h1>
@@ -117,9 +117,12 @@ export const RegisterPage: React.FC = () => {
           </button>
         </form>
 
-        <div className="text-center text-xs text-on-surface-variant pt-1">
+        <div className="pt-1 text-center text-xs text-on-surface-variant">
           Already have an account?{' '}
-          <Link to="/login" className="font-bold text-primary hover:underline">
+          <Link
+            to="/login"
+            className="inline-flex min-h-[44px] items-center font-bold text-primary hover:underline"
+          >
             Sign In
           </Link>
         </div>

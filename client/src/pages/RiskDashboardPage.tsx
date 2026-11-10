@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { apiFetch } from '../api/client';
@@ -456,13 +456,13 @@ export const RiskDashboardPage: React.FC<{ onOpenEmergencyModal: () => void }> =
   };
 
   return (
-    <main className="w-full pt-20 pb-space-3xl min-h-screen bg-surface">
+    <main className="jg-page min-h-[100dvh] bg-surface pb-space-3xl">
       {/* Top Banner / Location Selector */}
       <section className="bg-surface-container-low py-space-xl border-b border-outline-variant/30">
         <div className="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop flex flex-col md:flex-row md:items-center justify-between gap-space-md">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Link to="/" className="text-xs text-on-surface-variant hover:text-on-surface">Home</Link>
+              <Link to="/" className="inline-flex min-h-[44px] items-center text-xs text-on-surface-variant hover:text-on-surface">Home</Link>
               <span className="text-xs text-on-surface-variant">/</span>
               <span className="text-xs text-primary font-bold">Disaster Forecast Intelligence</span>
             </div>
@@ -474,8 +474,8 @@ export const RiskDashboardPage: React.FC<{ onOpenEmergencyModal: () => void }> =
             </p>
           </div>
 
-          <form onSubmit={handleSearch} className="flex gap-2 w-full md:w-auto">
-            <div className="relative flex-1 md:w-80">
+          <form onSubmit={handleSearch} className="flex w-full gap-2 md:w-auto">
+            <div className="relative min-w-0 flex-1 md:w-80">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">
                 search
               </span>
@@ -484,12 +484,12 @@ export const RiskDashboardPage: React.FC<{ onOpenEmergencyModal: () => void }> =
                 value={locationInput}
                 onChange={(e) => setLocationInput(e.target.value)}
                 placeholder="Enter city, district or state (e.g. Guwahati)"
-                className="w-full h-11 pl-9 pr-3 rounded-lg bg-surface-container-lowest text-on-surface text-sm border border-outline-variant/40 outline-none focus:border-primary"
+                className="h-11 w-full min-w-0 rounded-lg border border-outline-variant/40 bg-surface-container-lowest pl-9 pr-3 text-sm text-on-surface outline-none focus:border-primary"
               />
             </div>
             <button
               type="submit"
-              className="h-11 px-space-md rounded-lg bg-primary-container text-on-primary font-semibold text-sm hover:bg-primary transition-all flex items-center gap-1"
+              className="flex h-11 shrink-0 items-center gap-1 rounded-lg bg-primary-container px-space-md text-sm font-semibold text-on-primary transition-all hover:bg-primary"
             >
               <span>Analyze</span>
             </button>
@@ -541,9 +541,11 @@ export const RiskDashboardPage: React.FC<{ onOpenEmergencyModal: () => void }> =
                   </h2>
 
                   {/* Overall Risk Chip */}
-                  <div className="mt-space-md flex items-center gap-3">
-                    <div className={`px-4 py-2 rounded-xl border font-bold text-base flex items-center gap-2 ${getRiskColor(analysis.overallRiskLevel)}`}>
-                      <span className="w-2.5 h-2.5 rounded-full bg-current animate-pulse"></span>
+                  <div className="mt-space-md flex flex-wrap items-center gap-3">
+                    <div
+                      className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-base font-bold ${getRiskColor(analysis.overallRiskLevel)}`}
+                    >
+                      <span className="h-2.5 w-2.5 rounded-full bg-current animate-pulse"></span>
                       <span>Overall Risk: {analysis.overallRiskLevel}</span>
                     </div>
                     <div className="flex flex-col">
@@ -583,17 +585,17 @@ export const RiskDashboardPage: React.FC<{ onOpenEmergencyModal: () => void }> =
                 </div>
 
                 {/* Direct Action Buttons */}
-                <div className="mt-space-lg flex gap-space-xs pt-space-sm border-t border-outline-variant/20">
+                <div className="mt-space-lg flex flex-col gap-space-xs border-t border-outline-variant/20 pt-space-sm sm:flex-row">
                   <Link
                     to="/assistant"
-                    className="flex-1 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-primary font-bold text-xs flex items-center justify-center gap-1 transition-colors"
+                    className="flex min-h-[44px] flex-1 items-center justify-center gap-1 rounded-lg bg-surface-container-high px-3 text-xs font-bold text-primary transition-colors hover:bg-surface-container-highest"
                   >
                     <span className="material-symbols-outlined text-[16px]">smart_toy</span>
                     <span>Ask AI Assistant</span>
                   </Link>
                   <button
                     onClick={onOpenEmergencyModal}
-                    className="flex-1 py-2 rounded-lg bg-error-container hover:bg-error/20 text-on-error-container font-bold text-xs flex items-center justify-center gap-1 transition-colors"
+                    className="flex min-h-[44px] flex-1 items-center justify-center gap-1 rounded-lg bg-error-container px-3 text-xs font-bold text-on-error-container transition-colors hover:bg-error/20"
                   >
                     <span className="material-symbols-outlined text-[16px]">call</span>
                     <span>Emergency Lines</span>
@@ -623,14 +625,18 @@ export const RiskDashboardPage: React.FC<{ onOpenEmergencyModal: () => void }> =
                               {h.type.toLowerCase().includes('rain') ? 'rainy' : h.type.toLowerCase().includes('flood') ? 'flood' : h.type.toLowerCase().includes('heat') ? 'thermostat' : 'warning'}
                             </span>
                           </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-headline-sm text-sm font-bold text-on-surface">{h.type}</h4>
-                              <span className="px-2 py-0.5 rounded-full bg-surface-container-highest text-[10px] font-bold text-on-surface-variant uppercase">
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h4 className="break-words font-headline-sm text-sm font-bold text-on-surface">
+                                {h.type}
+                              </h4>
+                              <span className="shrink-0 rounded-full bg-surface-container-highest px-2 py-0.5 text-[10px] font-bold uppercase text-on-surface-variant">
                                 {h.status}
                               </span>
                             </div>
-                            <p className="font-body-sm text-xs text-on-surface-variant mt-0.5">{h.description}</p>
+                            <p className="mt-0.5 break-words font-body-sm text-xs text-on-surface-variant">
+                              {h.description}
+                            </p>
                           </div>
                         </div>
                         <div className="shrink-0 text-right sm:pl-4">
@@ -701,7 +707,7 @@ export const RiskDashboardPage: React.FC<{ onOpenEmergencyModal: () => void }> =
                         <span>Authority: <strong className="text-on-surface">{a.authority || a.source}</strong></span>
                         {a.issuedIST && <span>Issued: {a.issuedIST}</span>}
                         {a.sourceUrl && (
-                          <a href={a.sourceUrl} target="_blank" rel="noreferrer" className="text-primary font-bold hover:underline">
+                          <a href={a.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[44px] items-center font-bold text-primary hover:underline">
                             View source bulletin ↗
                           </a>
                         )}
@@ -962,17 +968,17 @@ export const RiskDashboardPage: React.FC<{ onOpenEmergencyModal: () => void }> =
                 <div className="flex flex-col gap-space-xs">
                   {analysis.nearestHospitals?.map((h: any) => (
                     <div key={h.id} className="p-space-sm rounded-lg bg-surface-container-low border border-outline-variant/20 flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-xs text-on-surface">{h.name}</span>
-                        <span className="text-[11px] text-on-surface-variant truncate max-w-xs">{h.address}</span>
-                        <div className="flex items-center gap-3 mt-1 text-[11px]">
-                          <span className="text-primary font-semibold">Available Beds: {h.availableBeds}</span>
-                          <span className="text-secondary font-semibold">Available ICU: {h.availableIcuBeds}</span>
+                      <div className="flex min-w-0 flex-col">
+                        <span className="break-words text-xs font-bold text-on-surface">{h.name}</span>
+                        <span className="text-[11px] text-on-surface-variant">{h.address}</span>
+                        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+                          <span className="font-semibold text-primary">Available Beds: {h.availableBeds}</span>
+                          <span className="font-semibold text-secondary">Available ICU: {h.availableIcuBeds}</span>
                         </div>
                       </div>
                       <a
                         href={`tel:${h.contactPhone}`}
-                        className="px-3 py-1 rounded-lg bg-primary text-on-primary text-xs font-semibold shrink-0"
+                        className="inline-flex min-h-[44px] shrink-0 items-center rounded-lg bg-primary px-4 text-xs font-semibold text-on-primary"
                       >
                         Call
                       </a>
@@ -1017,10 +1023,10 @@ export const RiskDashboardPage: React.FC<{ onOpenEmergencyModal: () => void }> =
                               <span className="truncate">{s.name}</span>
                               <span className="px-1.5 py-px rounded-full bg-surface-tint text-white text-[9px] font-bold uppercase shrink-0">Live</span>
                             </span>
-                            <span className="text-[11px] text-on-surface-variant truncate max-w-xs">
+                            <span className="text-[11px] text-on-surface-variant">
                               {[s.address, s.distanceKm !== undefined ? `${s.distanceKm} km away` : null].filter(Boolean).join(' · ') || 'Community shelter candidate'}
                             </span>
-                            <span className="text-[11px] text-on-surface-variant mt-0.5">
+                            <span className="mt-0.5 text-[11px] text-on-surface-variant">
                               {[s.operator ? `Run by ${s.operator}` : null, 'Availability unconfirmed — call ahead'].filter(Boolean).join(' · ')}
                             </span>
                           </div>
@@ -1028,7 +1034,7 @@ export const RiskDashboardPage: React.FC<{ onOpenEmergencyModal: () => void }> =
                             <a
                               href={`tel:${s.phone.replace(/[^+\d]/g, '')}`}
                               title={s.phone}
-                              className="px-3 py-1 rounded-lg bg-secondary text-on-secondary text-xs font-semibold shrink-0"
+                              className="inline-flex min-h-[44px] shrink-0 items-center rounded-lg bg-secondary px-4 text-xs font-semibold text-on-secondary"
                             >
                               Contact
                             </a>

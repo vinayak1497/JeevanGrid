@@ -1,17 +1,23 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../i18n/LanguageContext';
+import { Sheet } from './ui/Sheet';
 
 interface EmergencyModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+/**
+ * Global emergency dialer.
+ *
+ * On a phone it is a bottom sheet so the numbers are always reachable with a
+ * thumb and the list never overflows. Dial buttons are large enough to hit
+ * while panicking.
+ */
 export const EmergencyModal: React.FC<EmergencyModalProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-
-  if (!isOpen) return null;
 
   const helplines = [
     {
@@ -52,79 +58,64 @@ export const EmergencyModal: React.FC<EmergencyModalProps> = ({ isOpen, onClose 
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-surface/40 backdrop-blur-xs">
-      <div className="bg-surface-container-lowest w-full max-w-xl rounded-2xl shadow-2xl border border-outline-variant/40 overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="p-space-lg bg-surface-container-low border-b border-outline-variant/30 flex items-center justify-between">
-          <div className="flex items-center gap-space-xs">
-            <div className="w-8 h-8 rounded-full bg-error flex items-center justify-center text-on-error">
-              <span className="material-symbols-outlined text-[18px]">e911_emergency</span>
+    <Sheet
+      open={isOpen}
+      onClose={onClose}
+      title={t('emergency.title')}
+      description={t('emergency.sub')}
+      size="md"
+      footer={
+        <p className="text-center text-[11px] leading-relaxed text-on-surface-variant">
+          {t('emergency.footer')}
+        </p>
+      }
+    >
+      <div className="flex flex-col gap-2.5">
+        {helplines.map((line) => (
+          <div
+            key={line.number}
+            className="flex flex-col gap-3 rounded-2xl border border-outline-variant/35 bg-surface-container-low p-3.5 transition-colors hover:bg-surface-container sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div className="flex min-w-0 flex-col gap-1">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="text-sm font-bold text-on-surface">{line.title}</span>
+                <span className="rounded-full bg-surface-container-high px-2 py-0.5 text-[10px] font-semibold text-on-surface-variant">
+                  {line.badge}
+                </span>
+              </div>
+              <p className="text-xs leading-relaxed text-on-surface-variant">{line.desc}</p>
             </div>
-            <div>
-              <h3 className="font-headline-sm text-headline-sm text-on-surface font-bold">{t('emergency.title')}</h3>
-              <p className="font-label-sm text-[11px] text-on-surface-variant">{t('emergency.sub')}</p>
-            </div>
+            <a
+              href={`tel:${line.number}`}
+              className={`inline-flex min-h-[48px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-5 font-code-num text-base font-bold shadow-sm transition-transform active:scale-95 ${line.color}`}
+            >
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                call
+              </span>
+              <span>{line.number}</span>
+            </a>
+          </div>
+        ))}
+
+        <div className="mt-1 flex flex-col gap-3 rounded-2xl border border-outline-variant/30 bg-surface-container-high/50 p-3.5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h3 className="text-xs font-bold text-on-surface">{t('emergency.reportTitle')}</h3>
+            <p className="mt-0.5 text-[11px] leading-relaxed text-on-surface-variant">
+              {t('emergency.reportSub')}
+            </p>
           </div>
           <button
-            onClick={onClose}
-            aria-label={t('emergency.close')}
-            className="w-8 h-8 rounded-full hover:bg-surface-container-high flex items-center justify-center text-on-surface transition-colors"
+            type="button"
+            onClick={() => {
+              onClose();
+              navigate('/report-emergency');
+            }}
+            className="jg-button-primary shrink-0"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            {t('emergency.reportBtn')}
           </button>
         </div>
-
-        {/* Content */}
-        <div className="p-space-lg overflow-y-auto flex flex-col gap-space-sm">
-          {helplines.map((line) => (
-            <div
-              key={line.number}
-              className="p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors border border-outline-variant/30 flex items-center justify-between gap-space-md"
-            >
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-headline-sm text-sm font-bold text-on-surface">{line.title}</span>
-                  <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-[10px] font-semibold text-on-surface-variant">
-                    {line.badge}
-                  </span>
-                </div>
-                <p className="font-body-sm text-xs text-on-surface-variant">{line.desc}</p>
-              </div>
-              <a
-                href={`tel:${line.number}`}
-                className={`px-4 py-2 rounded-lg font-code-num text-sm font-bold shadow-xs flex items-center gap-1.5 whitespace-nowrap ${line.color}`}
-              >
-                <span className="material-symbols-outlined text-[16px]">call</span>
-                <span>{line.number}</span>
-              </a>
-            </div>
-          ))}
-
-          {/* Alternate rapid citizen actions */}
-          <div className="mt-space-xs p-space-md rounded-xl bg-surface-container-high/50 flex flex-col sm:flex-row items-center justify-between gap-space-sm border border-outline-variant/20">
-            <div className="text-left">
-              <h4 className="text-xs font-bold text-on-surface">{t('emergency.reportTitle')}</h4>
-              <p className="text-[11px] text-on-surface-variant">{t('emergency.reportSub')}</p>
-            </div>
-            <button
-              onClick={() => {
-                onClose();
-                navigate('/report-emergency');
-              }}
-              className="px-3 py-1.5 rounded-lg bg-primary text-on-primary text-xs font-semibold whitespace-nowrap"
-            >
-              {t('emergency.reportBtn')}
-            </button>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="p-space-md bg-surface-container-low border-t border-outline-variant/30 text-center">
-          <p className="font-label-sm text-[11px] text-on-surface-variant">
-            {t('emergency.footer')}
-          </p>
-        </div>
       </div>
-    </div>
+    </Sheet>
   );
 };

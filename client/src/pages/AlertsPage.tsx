@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../api/client';
 import { LeafletMap } from '../components/LeafletMap';
 import { subscribeForDistrict } from '../utils/push';
+import { useAuth } from '../context/AuthContext';
 
 interface OfficialAlert {
   id: string;
@@ -101,8 +102,30 @@ const SOURCE_LABEL: Record<string, string> = {
   INCOIS: 'INCOIS',
 };
 
+const ACK_OPTIONS = [
+  ['RECEIVED', 'I have seen this warning', 'bg-surface-container-high text-on-surface'],
+  ['SAFE', 'I am safe', 'bg-[#e9f3ed] text-primary'],
+  ['NEED_ASSISTANCE', 'I need assistance', 'bg-[#fff7ed] text-[#9a3412]'],
+  ['CANNOT_EVACUATE', 'I cannot evacuate', 'bg-error-container text-on-error-container'],
+  ['NEED_INFO', 'I need more information', 'bg-[#eef2ff] text-[#3730a3]'],
+] as const;
+
+const ACK_LABELS: Record<string, string> = {
+  RECEIVED: 'seen',
+  SAFE: 'safe',
+  NEED_ASSISTANCE: 'needs assistance',
+  CANNOT_EVACUATE: 'cannot evacuate',
+  NEED_INFO: 'needs information',
+};
+
 export const AlertsPage: React.FC = () => {
+  const { user } = useAuth();
   const [alerts, setAlerts] = useState<OfficialAlert[]>([]);
+  const [demoAlerts, setDemoAlerts] = useState<any[]>([]);
+  const [myAcks, setMyAcks] = useState<Record<string, string>>({});
+  const [ackNotes, setAckNotes] = useState<Record<string, string>>({});
+  const [ackMsg, setAckMsg] = useState<Record<string, string>>({});
+  const [acking, setAcking] = useState<string | null>(null);
   const [sources, setSources] = useState<SourceHealth[]>([]);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [lastSync, setLastSync] = useState<string | null>(null);
@@ -150,6 +173,70 @@ export const AlertsPage: React.FC = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    let cancelled = false;
+    apiFetch<{ alerts: any[] }>('/alerts/demo-scenarios')
+      .then((response) => {
+        if (!cancelled) setDemoAlerts(response.alerts || []);
+      })
+      .catch(() => {
+        if (!cancelled) setDemoAlerts([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setMyAcks({});
+      return;
+    }
+    let cancelled = false;
+    apiFetch<{ acknowledgements: any[] }>('/alert-acknowledgements/mine')
+      .then((response) => {
+        if (cancelled) return;
+        const map: Record<string, string> = {};
+        for (const ack of response.acknowledgements || []) {
+          if (!map[ack.alertId]) map[ack.alertId] = ack.response;
+        }
+        setMyAcks(map);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  async function handleAcknowledgement(alertId: string, response: string) {
+    if (!user) {
+      setAckMsg((prev) => ({
+        ...prev,
+        [alertId]: 'Sign in to record an acknowledgement. Your response helps officers follow up.',
+      }));
+      return;
+    }
+    const key = `${alertId}-${response}`;
+    setAcking(key);
+    setAckMsg((prev) => ({ ...prev, [alertId]: '' }));
+    try {
+      const result = await apiFetch<any>('/alert-acknowledgements', {
+        method: 'POST',
+        body: JSON.stringify({
+          alertId,
+          response,
+          note: (ackNotes[alertId] || '').trim() || undefined,
+        }),
+      });
+      setMyAcks((prev) => ({ ...prev, [alertId]: response }));
+      setAckMsg((prev) => ({ ...prev, [alertId]: result.message }));
+    } catch (err: any) {
+      setAckMsg((prev) => ({ ...prev, [alertId]: err.message || 'Could not record acknowledgement.' }));
+    } finally {
+      setAcking(null);
+    }
+  }
 
   async function handleSync() {
     setSyncing(true);
@@ -265,12 +352,12 @@ export const AlertsPage: React.FC = () => {
   };
 
   return (
-    <main className="w-full pt-20 pb-space-3xl min-h-screen bg-surface">
+    <main className="jg-page min-h-[100dvh] bg-surface pb-space-3xl">
       {/* Header */}
       <section className="bg-surface-container-low py-space-xl border-b border-outline-variant/30">
         <div className="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop">
           <div className="flex items-center gap-2 mb-1">
-            <Link to="/" className="text-xs text-on-surface-variant hover:text-on-surface">Home</Link>
+            <Link to="/" className="inline-flex min-h-[44px] items-center text-xs text-on-surface-variant hover:text-on-surface">Home</Link>
             <span className="text-xs text-on-surface-variant">/</span>
             <span className="text-xs text-primary font-bold">Official Warnings</span>
           </div>
@@ -291,7 +378,7 @@ export const AlertsPage: React.FC = () => {
             <button
               onClick={handleSync}
               disabled={syncing}
-              className="h-9 px-4 rounded-lg bg-primary text-on-primary text-xs font-bold disabled:opacity-50"
+              className="h-11 px-4 rounded-xl bg-primary text-on-primary text-xs font-bold disabled:opacity-50"
             >
               {syncing ? 'Synchronizing…' : 'Sync now'}
             </button>
@@ -304,7 +391,7 @@ export const AlertsPage: React.FC = () => {
               <select
                 value={stateFilter}
                 onChange={(e) => setStateFilter(e.target.value)}
-                className="w-full h-10 px-3 rounded-lg bg-surface-container-lowest text-on-surface text-xs border border-outline-variant/30 outline-none focus:border-primary"
+                className="w-full h-11 px-3 rounded-xl bg-surface-container-lowest text-on-surface text-xs border border-outline-variant/30 outline-none focus:border-primary"
               >
                 <option value="All">All States</option>
                 <option value="Maharashtra">Maharashtra</option>
@@ -319,7 +406,7 @@ export const AlertsPage: React.FC = () => {
               <select
                 value={hazardFilter}
                 onChange={(e) => setHazardFilter(e.target.value)}
-                className="w-full h-10 px-3 rounded-lg bg-surface-container-lowest text-on-surface text-xs border border-outline-variant/30 outline-none focus:border-primary"
+                className="w-full h-11 px-3 rounded-xl bg-surface-container-lowest text-on-surface text-xs border border-outline-variant/30 outline-none focus:border-primary"
               >
                 <option value="All">All Hazards</option>
                 <option value="Flood">Flood &amp; Surge</option>
@@ -334,7 +421,7 @@ export const AlertsPage: React.FC = () => {
               <select
                 value={severityFilter}
                 onChange={(e) => setSeverityFilter(e.target.value)}
-                className="w-full h-10 px-3 rounded-lg bg-surface-container-lowest text-on-surface text-xs border border-outline-variant/30 outline-none focus:border-primary"
+                className="w-full h-11 px-3 rounded-xl bg-surface-container-lowest text-on-surface text-xs border border-outline-variant/30 outline-none focus:border-primary"
               >
                 <option value="All">All Severities</option>
                 <option value="CRITICAL">Critical Danger</option>
@@ -349,7 +436,7 @@ export const AlertsPage: React.FC = () => {
                 value={districtFilter}
                 onChange={(e) => setDistrictFilter(e.target.value)}
                 placeholder="e.g. Darbhanga"
-                className="w-full h-10 px-3 rounded-lg bg-surface-container-lowest text-on-surface text-xs border border-outline-variant/30 outline-none focus:border-primary"
+                className="w-full h-11 px-3 rounded-xl bg-surface-container-lowest text-on-surface text-xs border border-outline-variant/30 outline-none focus:border-primary"
               />
             </div>
           </div>
@@ -357,7 +444,7 @@ export const AlertsPage: React.FC = () => {
             <button
               onClick={handleSubscribe}
               disabled={subscribing}
-              className="h-9 px-4 rounded-lg bg-secondary text-on-secondary text-xs font-bold disabled:opacity-50"
+              className="h-11 px-4 rounded-xl bg-secondary text-on-secondary text-xs font-bold disabled:opacity-50"
             >
               {subscribing ? 'Saving…' : 'Notify me about official warnings here'}
             </button>
@@ -409,7 +496,7 @@ export const AlertsPage: React.FC = () => {
                 <button
                   key={d}
                   onClick={() => setDistrictFilter(d === districtFilter ? '' : d)}
-                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-colors ${
+                  className={`min-h-[44px] px-3 py-2 rounded-full text-xs font-bold border transition-colors ${
                     d === districtFilter
                       ? 'bg-primary text-on-primary border-primary'
                       : 'bg-surface-container-low text-on-surface border-outline-variant/30 hover:border-primary'
@@ -476,11 +563,14 @@ export const AlertsPage: React.FC = () => {
                   }`}
                 >
                   <div>
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="text-[11px] font-bold text-secondary uppercase tracking-wider">
-                        [{alert.severity}] {alert.eventType || alert.hazardType} • {alert.affectedArea || `${alert.district}, ${alert.state}`}
+                    <div className="mb-2 flex items-start justify-between gap-2">
+                      <span className="min-w-0 flex-1 break-words text-[11px] font-bold uppercase tracking-wider text-secondary">
+                        [{alert.severity}] {alert.eventType || alert.hazardType} •{' '}
+                        {alert.affectedArea || `${alert.district}, ${alert.state}`}
                       </span>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${getSeverityBadge(alert.severity)}`}>
+                      <span
+                        className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${getSeverityBadge(alert.severity)}`}
+                      >
                         {alert.severity}
                       </span>
                     </div>
@@ -517,15 +607,65 @@ export const AlertsPage: React.FC = () => {
                         href={alert.sourceUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-block mt-2 text-[11px] font-bold text-primary hover:underline"
+                        className="mt-2 inline-flex min-h-[44px] items-center text-xs font-bold text-primary hover:underline"
                       >
                         View Original Bulletin →
                       </a>
                     )}
 
+                    <div className="mt-3 rounded-lg border border-primary/20 bg-[#f7fbf8] p-2.5">
+                      <div className="flex flex-wrap items-center justify-between gap-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-primary">
+                          Acknowledge this warning
+                        </span>
+                        {myAcks[alert.id] && (
+                          <span className="text-[10px] font-semibold text-primary">
+                            Your last response: {ACK_LABELS[myAcks[alert.id]] || myAcks[alert.id]}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-on-surface-variant mt-0.5">
+                        Optional. An acknowledgement is not a verified incident and does not dispatch a
+                        team. Call 112 for immediate danger.
+                      </p>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {ACK_OPTIONS.map(([value, label, classes]) => (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => handleAcknowledgement(alert.id, value)}
+                            disabled={acking === `${alert.id}-${value}`}
+                            aria-pressed={myAcks[alert.id] === value}
+                            className={`min-h-[44px] px-3 py-2 rounded-xl text-xs font-bold border border-outline-variant/30 disabled:opacity-50 ${classes} ${
+                              myAcks[alert.id] === value ? 'ring-2 ring-primary/30' : ''
+                            }`}
+                          >
+                            {acking === `${alert.id}-${value}` ? 'Saving…' : label}
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        value={ackNotes[alert.id] || ''}
+                        onChange={(e) =>
+                          setAckNotes((prev) => ({ ...prev, [alert.id]: e.target.value }))
+                        }
+                        placeholder={user ? 'Optional note for officers (e.g. street or landmark)' : 'Sign in to acknowledge'}
+                        disabled={!user}
+                        className="mt-1.5 h-11 w-full rounded-xl border border-outline-variant/40 bg-white px-3 text-sm disabled:bg-surface-container-low"
+                      />
+                      {ackMsg[alert.id] && (
+                        <p className="text-[10px] font-semibold text-on-surface mt-1">{ackMsg[alert.id]}</p>
+                      )}
+                      {!user && (
+                        <Link to="/login" className="mt-1 inline-flex min-h-[44px] items-center text-xs font-bold text-primary underline">
+                          Sign in to acknowledge
+                        </Link>
+                      )}
+                    </div>
+
                     <button
                       onClick={() => setExpanded((p) => ({ ...p, [alert.id]: !p[alert.id] }))}
-                      className="block mt-3 text-[11px] font-bold text-on-surface-variant hover:text-on-surface"
+                      className="mt-3 inline-flex min-h-[44px] items-center text-xs font-bold text-on-surface-variant hover:text-on-surface"
                       aria-expanded={!!expanded[alert.id]}
                     >
                       {expanded[alert.id] ? 'Hide Source & Verification ▲' : 'Source & Verification ▼'}
@@ -544,7 +684,7 @@ export const AlertsPage: React.FC = () => {
                         <div>
                           <strong>Original: </strong>
                           {alert.sourceUrl ? (
-                            <a href={alert.sourceUrl} target="_blank" rel="noreferrer" className="text-primary font-bold hover:underline">View official source</a>
+                            <a href={alert.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[44px] items-center font-bold text-primary hover:underline">View official source</a>
                           ) : 'available via issuing authority portal'}
                         </div>
                         <div className="pt-1 text-[10px]">
@@ -561,7 +701,7 @@ export const AlertsPage: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <Link
                           to={`/risk/${encodeURIComponent(alert.district || alert.state)}`}
-                          className="font-bold text-secondary hover:underline"
+                          className="inline-flex min-h-[44px] items-center font-bold text-secondary hover:underline"
                           title="Check JeevanGrid risk intelligence for this district"
                         >
                           Check district risk
@@ -569,7 +709,7 @@ export const AlertsPage: React.FC = () => {
                         <button
                           onClick={() => handleStage(alert.id, alert.district, alert.state)}
                           disabled={!!staging[alert.id]}
-                          className="font-bold text-primary hover:underline flex items-center gap-0.5 disabled:opacity-50"
+                          className="inline-flex min-h-[44px] items-center gap-0.5 font-bold text-primary hover:underline disabled:opacity-50"
                           title="Stage JeevanGrid's operational district response for this official warning (EOC roles)"
                         >
                           <span>{staging[alert.id] ? 'Staging…' : 'Stage for District Response'}</span>
@@ -591,6 +731,78 @@ export const AlertsPage: React.FC = () => {
           )}
         </div>
 
+        {/* Simulation acknowledgements — explicitly not official warnings */}
+        {demoAlerts.length > 0 && (
+          <div className="mt-space-xl rounded-2xl border border-[#fbbf24] bg-[#fffbeb] p-space-lg">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-2 py-0.5 rounded-full bg-[#fef3c7] border border-[#fbbf24] text-[10px] font-bold uppercase tracking-wide text-[#92400e]">
+                SIMULATION
+              </span>
+              <h2 className="font-headline-sm text-base font-bold text-[#78350f]">
+                Simulation alert acknowledgement
+              </h2>
+            </div>
+            <p className="text-[11px] text-[#78350f] mt-1 max-w-3xl">
+              These are <strong>demo records, not official warnings</strong>. They exist only to test the
+              acknowledgement workflow. All entries are labelled SIMULATION. Do not treat them as real
+              hazard information; check the official warnings above and the issuing authority.
+            </p>
+            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-space-md">
+              {demoAlerts.slice(0, 4).map((alert) => (
+                <article
+                  key={alert.id}
+                  className="rounded-xl border border-[#fbbf24]/70 bg-white/80 p-3"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#92400e]">
+                      {alert.severity} · {alert.hazardType || 'Hazard'}
+                    </span>
+                    <span className="text-[10px] font-bold text-[#92400e]">
+                      SIMULATION
+                    </span>
+                  </div>
+                  <h3 className="text-[12px] font-bold text-on-surface mt-1">{alert.title}</h3>
+                  <p className="text-[10.5px] text-on-surface-variant mt-0.5">
+                    {alert.district}, {alert.state} · {alert.source}
+                  </p>
+                  <p className="text-[10.5px] text-on-surface-variant mt-1 line-clamp-2">
+                    {alert.description}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {ACK_OPTIONS.map(([value, label, classes]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => handleAcknowledgement(alert.id, value)}
+                        disabled={acking === `${alert.id}-${value}`}
+                        aria-pressed={myAcks[alert.id] === value}
+                        className={`min-h-[44px] px-3 py-2 rounded-xl text-xs font-bold border border-[#fbbf24]/50 disabled:opacity-50 ${classes} ${
+                          myAcks[alert.id] === value ? 'ring-2 ring-[#b45309]/40' : ''
+                        }`}
+                      >
+                        {acking === `${alert.id}-${value}` ? 'Saving…' : label}
+                      </button>
+                    ))}
+                  </div>
+                  {myAcks[alert.id] && (
+                    <p className="text-[10px] font-semibold text-[#92400e] mt-1">
+                      Recorded response: {ACK_LABELS[myAcks[alert.id]] || myAcks[alert.id]} (simulation)
+                    </p>
+                  )}
+                  {ackMsg[alert.id] && (
+                    <p className="text-[10px] font-semibold text-on-surface mt-1">{ackMsg[alert.id]}</p>
+                  )}
+                  {!user && (
+                    <Link to="/login" className="mt-1 inline-flex min-h-[44px] items-center text-xs font-bold text-[#92400e] underline">
+                      Sign in to test acknowledgement
+                    </Link>
+                  )}
+                </article>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* JeevanGrid intelligence — kept strictly separate */}
         <div className="rounded-2xl p-space-lg border border-dashed border-outline-variant/40 bg-surface-container-low">
           <h3 className="font-headline-sm text-base font-bold text-on-surface">JeevanGrid Risk Intelligence</h3>
@@ -599,7 +811,7 @@ export const AlertsPage: React.FC = () => {
             terrain, historical risk and forecasts. <strong>This is a JeevanGrid risk assessment and is not
             an official government warning.</strong>
           </p>
-          <Link to="/risk/Mumbai" className="inline-block mt-2 text-xs font-bold text-primary hover:underline">
+          <Link to="/risk/Mumbai" className="mt-2 inline-flex min-h-[44px] items-center text-xs font-bold text-primary hover:underline">
             Check JeevanGrid risk for your district →
           </Link>
         </div>
@@ -611,7 +823,7 @@ export const AlertsPage: React.FC = () => {
             Citizen, volunteer and field-officer reports appear with an explicit verification state
             (Unverified → Verified Community Report) and are <strong>never</strong> presented as official warnings.
           </p>
-          <Link to="/report-emergency" className="inline-block mt-2 text-xs font-bold text-primary hover:underline">
+          <Link to="/report-emergency" className="mt-2 inline-flex min-h-[44px] items-center text-xs font-bold text-primary hover:underline">
             Submit a field report →
           </Link>
         </div>

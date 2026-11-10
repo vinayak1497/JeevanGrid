@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { getStrings } from './assistantI18n';
 
 export interface ContextBarProps {
@@ -11,6 +11,8 @@ export interface ContextBarProps {
   onSetLocation: (text: string) => void;
   onUseDeviceLocation: () => void;
   locating: boolean;
+  /** Slim single-line layout for the floating assistant panel. */
+  compact?: boolean;
 }
 
 /**
@@ -27,10 +29,123 @@ export const ContextBar: React.FC<ContextBarProps> = ({
   onSetLocation,
   onUseDeviceLocation,
   locating,
+  compact = false,
 }) => {
   const t = getStrings(lang);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
+
+  if (compact && !area && !editing) {
+    return (
+      <div className="flex items-center gap-2 rounded-lg border border-outline-variant/30 bg-surface-container-low px-2.5 py-1.5">
+        <span className="material-symbols-outlined text-[16px] text-on-surface-variant" aria-hidden="true">
+          location_off
+        </span>
+        <p className="min-w-0 flex-1 truncate text-[11px] font-medium text-on-surface-variant">
+          {t.setLocationPrompt}
+        </p>
+        <button
+          type="button"
+          onClick={onUseDeviceLocation}
+          disabled={locating}
+          aria-label={t.useMyLocation}
+          title={t.useMyLocation}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-outline-variant/40 bg-surface-container-lowest text-on-surface disabled:opacity-50"
+        >
+          <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+            my_location
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="shrink-0 min-h-[44px] rounded-xl bg-primary-container px-3.5 text-xs font-bold text-on-primary"
+        >
+          {t.changeLocation}
+        </button>
+      </div>
+    );
+  }
+
+  if (compact && (editing || !area)) {
+    return (
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (draft.trim()) {
+            onSetLocation(draft.trim());
+            setEditing(false);
+            setDraft('');
+          }
+        }}
+        className="flex gap-1.5 rounded-lg border border-outline-variant/30 bg-surface-container-low p-1.5"
+      >
+        <input
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="City, district or state"
+          aria-label={t.changeLocation}
+          className="h-11 min-w-0 flex-1 rounded-xl border border-outline-variant/40 bg-surface-container-lowest px-3 text-sm text-on-surface outline-none focus:border-primary"
+        />
+        <button
+          type="submit"
+          className="h-11 shrink-0 rounded-xl bg-primary-container px-3.5 text-xs font-bold text-on-primary"
+        >
+          {t.send}
+        </button>
+        {area && (
+          <button
+            type="button"
+            onClick={() => setEditing(false)}
+            aria-label={t.changeLocation}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-on-surface-variant"
+          >
+            ✕
+          </button>
+        )}
+      </form>
+    );
+  }
+
+  if (compact && area) {
+    return (
+      <div className="flex items-center gap-2 rounded-lg border border-outline-variant/30 bg-surface-container-low px-2.5 py-1.5">
+        <span className="material-symbols-outlined text-[16px] text-primary" aria-hidden="true">
+          location_on
+        </span>
+        <p className="min-w-0 flex-1 truncate text-[11px] font-bold text-on-surface">
+          {area.district} · {area.state}
+        </p>
+        <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+          {loading ? '…' : riskLevel ? `${riskLevel}${riskScore !== null ? ` · ${riskScore}` : ''}` : '—'}
+        </span>
+        <button
+          type="button"
+          onClick={onUseDeviceLocation}
+          disabled={locating}
+          aria-label={t.useMyLocation}
+          title={t.useMyLocation}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-on-surface-variant hover:bg-surface-container-high disabled:opacity-50"
+        >
+          <span className="material-symbols-outlined text-[15px]" aria-hidden="true">
+            my_location
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          aria-label={t.changeLocation}
+          title={t.changeLocation}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-on-surface-variant hover:bg-surface-container-high"
+        >
+          <span className="material-symbols-outlined text-[15px]" aria-hidden="true">
+            edit_location_alt
+          </span>
+        </button>
+      </div>
+    );
+  }
 
   if (!area && !editing) {
     return (
@@ -40,13 +155,13 @@ export const ContextBar: React.FC<ContextBarProps> = ({
           <button
             onClick={onUseDeviceLocation}
             disabled={locating}
-            className="px-3 h-9 rounded-lg bg-surface-container-lowest border border-outline-variant/40 text-xs font-bold text-on-surface disabled:opacity-50"
+            className="min-h-[44px] px-4 rounded-xl bg-surface-container-lowest border border-outline-variant/40 text-xs font-bold text-on-surface disabled:opacity-50"
           >
             {locating ? t.locating : t.useMyLocation}
           </button>
           <button
             onClick={() => setEditing(true)}
-            className="px-3 h-9 rounded-lg bg-primary-container text-on-primary text-xs font-bold"
+            className="min-h-[44px] px-4 rounded-xl bg-primary-container text-on-primary text-xs font-bold"
           >
             {t.changeLocation}
           </button>
@@ -74,16 +189,16 @@ export const ContextBar: React.FC<ContextBarProps> = ({
           onChange={(e) => setDraft(e.target.value)}
           placeholder="City, district or state — e.g. Guwahati"
           aria-label={t.changeLocation}
-          className="flex-1 h-10 px-3 rounded-lg bg-surface-container-lowest text-sm text-on-surface border border-outline-variant/40 outline-none focus:border-primary"
+          className="min-w-0 flex-1 h-11 px-3 rounded-xl bg-surface-container-lowest text-sm text-on-surface border border-outline-variant/40 outline-none focus:border-primary"
         />
-        <button type="submit" className="px-4 h-10 rounded-lg bg-primary-container text-on-primary text-xs font-bold">
+        <button type="submit" className="min-h-[44px] px-4 rounded-xl bg-primary-container text-on-primary text-xs font-bold">
           {t.send}
         </button>
         {area && (
           <button
             type="button"
             onClick={() => setEditing(false)}
-            className="px-3 h-10 rounded-lg text-xs font-bold text-on-surface-variant"
+            className="min-h-[44px] px-3 rounded-xl text-xs font-bold text-on-surface-variant"
           >
             ✕
           </button>
@@ -120,13 +235,13 @@ export const ContextBar: React.FC<ContextBarProps> = ({
             disabled={locating}
             title={t.useMyLocation}
             aria-label={t.useMyLocation}
-            className="w-9 h-9 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors disabled:opacity-50"
+            className="h-11 w-11 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors disabled:opacity-50"
           >
             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">my_location</span>
           </button>
           <button
             onClick={() => setEditing(true)}
-            className="px-3 h-9 rounded-lg bg-white/15 hover:bg-white/25 text-xs font-bold transition-colors"
+            className="min-h-[44px] px-4 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-bold transition-colors"
           >
             {t.changeLocation}
           </button>

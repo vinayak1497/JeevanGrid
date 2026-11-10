@@ -38,3 +38,8 @@ Thumbs.db
 
 # ── Deploy / tooling ─────────────────────────────────────────
 .vercel
+
+# Local tooling output
+.playwright-cli/
+client/.playwright-cli/
+*.tmp.js

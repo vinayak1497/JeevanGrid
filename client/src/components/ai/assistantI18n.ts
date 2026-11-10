@@ -16,6 +16,10 @@ export const ASSISTANT_LANGS: Array<{ code: AssistantLang; label: string; speech
 ];
 
 interface Dict {
+  floatingTitle: string;
+  floatingOpen: string;
+  floatingClose: string;
+  floatingExpand: string;
   statusOnline: string;
   statusConnecting: string;
   statusDegraded: string;
@@ -67,6 +71,10 @@ interface Dict {
 
 export const STRINGS: Record<AssistantLang, Dict> = {
   en: {
+    floatingTitle: 'JeevanGrid AI',
+    floatingOpen: 'Ask JeevanGrid AI',
+    floatingClose: 'Close AI assistant',
+    floatingExpand: 'Open full-page assistant',
     statusOnline: 'Safety Intelligence Online',
     statusConnecting: 'Connecting…',
     statusDegraded: 'Degraded — local engine active',
@@ -143,6 +151,10 @@ export const STRINGS: Record<AssistantLang, Dict> = {
     langFallbackNote: 'Showing English — this language is not supported yet.',
   },
   hi: {
+    floatingTitle: 'JeevanGrid AI',
+    floatingOpen: 'JeevanGrid AI से पूछें',
+    floatingClose: 'AI सहायक बंद करें',
+    floatingExpand: 'पूर्ण पृष्ठ सहायक खोलें',
     statusOnline: 'सुरक्षा इंटेलिजेंस ऑनलाइन',
     statusConnecting: 'जुड़ रहा है…',
     statusDegraded: 'सीमित सेवा — स्थानीय इंजन सक्रिय',
@@ -205,6 +217,10 @@ export const STRINGS: Record<AssistantLang, Dict> = {
     langFallbackNote: 'अंग्रेज़ी में दिखाया जा रहा है — यह भाषा अभी समर्थित नहीं है।',
   },
   mr: {
+    floatingTitle: 'JeevanGrid AI',
+    floatingOpen: 'JeevanGrid AI ला विचारा',
+    floatingClose: 'AI सहाय्यक बंद करा',
+    floatingExpand: 'पूर्ण पृष्ठ सहाय्यक उघडा',
     statusOnline: 'सुरक्षा इंटेलिजेंस ऑनलाइन',
     statusConnecting: 'जोडत आहे…',
     statusDegraded: 'मर्यादित सेवा — स्थानिक इंजिन सक्रिय',
@@ -267,6 +283,10 @@ export const STRINGS: Record<AssistantLang, Dict> = {
     langFallbackNote: 'इंग्रजीत दाखवत आहे — ही भाषा अद्याप समर्थित नाही.',
   },
   gu: {
+    floatingTitle: 'JeevanGrid AI',
+    floatingOpen: 'JeevanGrid AI ને પૂછો',
+    floatingClose: 'AI સહાયક બંધ કરો',
+    floatingExpand: 'પૂર્ણ પૃષ્ઠ સહાયક ખોલો',
     statusOnline: 'સુરક્ષા ઇન્ટેલિજન્સ ઓનલાઇન',
     statusConnecting: 'જોડાઈ રહ્યું છે…',
     statusDegraded: 'મર્યાદિત સેવા — સ્થાનિક એન્જિન સક્રિય',
@@ -329,6 +349,10 @@ export const STRINGS: Record<AssistantLang, Dict> = {
     langFallbackNote: 'અંગ્રેજીમાં બતાવી રહ્યું છે — આ ભાષા હજુ સપોર્ટેડ નથી.',
   },
   as: {
+    floatingTitle: 'JeevanGrid AI',
+    floatingOpen: 'JeevanGrid AI ক সোধক',
+    floatingClose: 'AI সহায়ক বন্ধ কৰক',
+    floatingExpand: 'সম্পূৰ্ণ পৃষ্ঠা সহায়ক খোলক',
     statusOnline: 'সুৰক্ষা ইণ্টেলিজেন্স অনলাইন',
     statusConnecting: 'সংযোগ কৰি আছে…',
     statusDegraded: 'সীমিত সেৱা — স্থানীয় ইঞ্জিন সক্ৰিয়',

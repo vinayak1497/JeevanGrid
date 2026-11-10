@@ -1,8 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { apiFetch } from '../api/client';
 import { useLanguage } from '../i18n/LanguageContext';
+import { FloatingAssistant } from '../components/ai/FloatingAssistant';
+import { Reveal } from '../components/ui/Motion';
+import { LocationPermissionCard } from '../components/report/LocationPermissionCard';
 
 interface LandingPageProps {
   onOpenEmergencyModal: () => void;
@@ -119,22 +122,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
             setSearchInput(label);
             setCurrentLocation(label);
           } catch {
-            setSearchInput('Bandra West, Mumbai Suburban (400050)');
-            setCurrentLocation('Mumbai');
+            // Do not invent a location when GPS or reverse geocoding fails.
+            setIsLocating(false);
           } finally {
             setIsLocating(false);
           }
         },
         (error) => {
-          // Graceful fallback if user denies or in testing environment
-          setSearchInput('Bandra West, Mumbai Suburban (400050)');
-          setCurrentLocation('Mumbai');
+          // Permission denied or location unavailable: stop honestly, no fallback.
           setIsLocating(false);
         },
         { timeout: 5000 }
       );
     } else {
-      setSearchInput('Bandra West, Mumbai Suburban (400050)');
       setIsLocating(false);
     }
   };
@@ -335,7 +335,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
             <div className="absolute inset-0 bg-gradient-to-r from-white/25 via-white/10 to-transparent"></div>
           </div>
 
-          <div className="relative z-10 max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop pt-32 lg:pt-40 pb-space-2xl">
+          <div className="relative z-10 mx-auto w-full min-w-0 max-w-container-max px-margin-mobile pb-space-2xl pt-[calc(var(--jg-header-h)+env(safe-area-inset-top)+3rem)] lg:px-margin-desktop lg:pt-44">
             {/* Eyebrow & Hero Header */}
             <motion.div
               initial={{ opacity: 0, y: 15 }}
@@ -411,19 +411,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
                     </button>
                   </div>
 
-                  <div className="flex items-center justify-between pt-space-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-space-xs">
                     <button
                       onClick={handleDetectGPS}
                       disabled={isLocating}
-                      className="inline-flex items-center gap-1.5 font-label-md text-label-md text-secondary hover:text-on-secondary-container transition-colors disabled:opacity-50"
+                      className="inline-flex min-h-[44px] items-center gap-1.5 font-label-md text-label-md text-secondary transition-colors hover:text-on-secondary-container disabled:opacity-50"
                       type="button"
                     >
                       <span className="material-symbols-outlined text-[16px]">my_location</span>
                       <span>{isLocating ? t('hero.locating') : t('hero.detectGps')}</span>
                     </button>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">
-                      {t('hero.telemetryNote')}
-                    </span>
+                    <span className="min-w-0 font-label-sm text-label-sm text-on-surface-variant">
+                    {t('hero.telemetryNote')}
+                  </span>
                   </div>
                 </div>
               </motion.div>
@@ -507,33 +507,41 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
           </div>
         </section>
 
+        {/* Explicit, one-time citizen location context — no automatic tracking. */}
+        <div className="mx-auto w-full min-w-0 max-w-container-max px-margin-mobile lg:px-margin-desktop">
+          <LocationPermissionCard />
+        </div>
+
         {/* ========================================================================= */}
         {/* SECTION 2: LIVE CIVIC STATUS STRIP */}
         {/* ========================================================================= */}
-        <section className="w-full bg-surface-container-low py-space-sm border-y border-outline-variant/30">
-          <div className="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop flex flex-wrap items-center justify-between gap-space-md">
-            <div className="flex flex-wrap items-center gap-space-md">
+        <section className="w-full border-y border-outline-variant/30 bg-surface-container-low py-space-sm">
+          <div className="mx-auto flex max-w-container-max flex-wrap items-center justify-between gap-space-md px-margin-mobile lg:px-margin-desktop">
+            <div className="flex min-w-0 flex-wrap items-center gap-space-md">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping"></span>
-                <span className="font-label-md text-label-md text-on-surface uppercase tracking-wider font-bold">
+                <span className="relative inline-flex h-2.5 w-2.5">
+                  <span className="absolute inset-0 animate-signal-pulse rounded-full bg-signal-live" />
+                  <span className="relative h-2.5 w-2.5 rounded-full bg-signal-live" />
+                </span>
+                <span className="font-label-md text-label-md font-bold uppercase tracking-wider text-on-surface">
                   {t('status.grid')}
                 </span>
               </div>
-              <div className="h-4 w-px bg-outline-variant hidden sm:block"></div>
-              <div className="flex items-center gap-space-xs">
-                <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">
+              <div className="hidden h-4 w-px bg-outline-variant sm:block"></div>
+              <div className="flex min-w-0 flex-wrap items-center gap-space-xs">
+                <span className="rounded-full bg-error-container px-2 py-0.5 font-label-sm text-label-sm font-bold text-on-error-container">
                   {telemetryLoading
                     ? 'Checking official warnings…'
                     : officialSourceDown
                       ? 'Official source temporarily unavailable'
                       : `${officialAlerts.length} verified official warning${officialAlerts.length === 1 ? '' : 's'}`}
                 </span>
-                <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">
+                <span className="rounded-full bg-surface-container-high px-2 py-0.5 font-label-sm text-label-sm text-on-surface">
                   {officialLastSync
                     ? `Synced ${new Date(officialLastSync).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
                     : t('status.regionsAtRisk')}
                 </span>
-                <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm hidden md:inline-flex">
+                <span className="hidden rounded-full bg-surface-container-high px-2 py-0.5 font-label-sm text-label-sm text-on-surface md:inline-flex">
                   {officialStaleCount > 0
                     ? `${officialStaleCount} stale withheld`
                     : t('status.advisories')}
@@ -541,13 +549,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
               </div>
             </div>
             <div className="flex items-center gap-space-md">
-              <div className="flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
+              <div className="hidden items-center gap-1 font-label-sm text-label-sm text-on-surface-variant sm:flex">
                 <span className="material-symbols-outlined text-[16px] text-surface-tint">sync</span>
                 <span>{t('status.telemetry')}</span>
               </div>
               <Link
                 to="/alerts"
-                className="font-label-md text-label-md text-primary hover:text-primary-container font-bold flex items-center gap-1 transition-colors"
+                className="inline-flex min-h-[44px] items-center gap-1 font-label-md text-label-md font-bold text-primary transition-colors hover:text-primary-container"
               >
                 <span>{t('status.viewAll')}</span>
                 <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -559,7 +567,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
         {/* ========================================================================= */}
         {/* SECTION 3: LIVE CITIZEN INFORMATION DASHBOARD (3-COLUMN API-READY GRID) */}
         {/* ========================================================================= */}
-        <section className="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop py-space-3xl w-full">
+        <section className="mx-auto w-full min-w-0 max-w-container-max px-margin-mobile py-space-3xl lg:px-margin-desktop">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-sm mb-space-xl">
             <div>
               <span className="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">
@@ -574,7 +582,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg">
+          <div className="jg-reveal grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg">
             {/* Column 1: Current Weather */}
             <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-outline-variant/30 flex flex-col justify-between">
               <div className="flex flex-col gap-space-md">
@@ -593,7 +601,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
                       const next = locs[(locs.indexOf(currentLocation) + 1) % locs.length];
                       setCurrentLocation(next);
                     }}
-                    className="px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors border border-outline-variant/30"
+                    className="min-h-[44px] shrink-0 rounded-xl border border-outline-variant/40 bg-surface-container-low px-3 text-label-sm font-semibold text-on-surface transition-colors hover:bg-surface-container"
                   >
                     {t('dash.change')}
                   </button>
@@ -617,20 +625,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
 
                 {/* Micro Sensor Data Bar */}
                 <div className="grid grid-cols-3 gap-space-xs py-space-sm rounded-lg bg-surface-container-low px-space-sm">
-                  <div className="flex flex-col">
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">{t('dash.humidity')}</span>
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate font-label-sm text-label-sm text-on-surface-variant">{t('dash.humidity')}</span>
                     <span className="font-code-num text-code-num text-on-surface font-semibold">
                       {weatherData?.humidity ?? 78}%
                     </span>
                   </div>
-                  <div className="flex flex-col">
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">{t('dash.wind')}</span>
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate font-label-sm text-label-sm text-on-surface-variant">{t('dash.wind')}</span>
                     <span className="font-code-num text-code-num text-on-surface font-semibold">
                       {weatherData?.windSpeed ?? 12} km/h
                     </span>
                   </div>
-                  <div className="flex flex-col">
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">{t('dash.rainChance')}</span>
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate font-label-sm text-label-sm text-on-surface-variant">{t('dash.rainChance')}</span>
                     <span className="font-code-num text-code-num text-on-surface font-semibold">
                       {weatherData?.rainProbability ?? 20}%
                     </span>
@@ -683,20 +691,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
                         to="/alerts"
                         className="p-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors flex items-center justify-between"
                       >
-                        <div className="flex items-center gap-space-xs">
-                          <span className="material-symbols-outlined text-error text-[20px]">
+                        <div className="flex min-w-0 flex-1 items-center gap-space-xs">
+                          <span className="material-symbols-outlined shrink-0 text-error text-[20px]">
                             {String(a.hazardType || '').toLowerCase().includes('flood') ? 'flood' : String(a.hazardType || '').toLowerCase().includes('heat') ? 'thermostat' : String(a.hazardType || '').toLowerCase().includes('cyclone') ? 'cyclone' : 'rainy'}
                           </span>
-                          <div className="flex flex-col text-left">
-                            <span className="font-label-md text-label-md text-on-surface font-semibold">
+                          <div className="flex min-w-0 flex-col text-left">
+                            <span className="truncate font-label-md text-label-md text-on-surface font-semibold">
                               {a.eventType || a.hazardType}
                             </span>
-                            <span className="font-label-sm text-[11px] text-on-surface-variant">
+                            <span className="truncate font-label-sm text-[11px] text-on-surface-variant">
                               {a.district}, {a.state} • {a.authority || a.source}
                             </span>
                           </div>
                         </div>
-                        <span className={`px-2 py-0.5 rounded-full font-label-sm text-label-sm font-semibold ${a.severity === 'CRITICAL' || a.severity === 'WARNING' ? 'bg-error-container text-on-error-container' : 'bg-surface-container-highest text-tertiary-container'}`}>
+                        <span className={`shrink-0 px-2 py-0.5 rounded-full font-label-sm text-label-sm font-semibold ${a.severity === 'CRITICAL' || a.severity === 'WARNING' ? 'bg-error-container text-on-error-container' : 'bg-surface-container-highest text-tertiary-container'}`}>
                           {a.severity === 'CRITICAL' ? 'Critical' : a.severity === 'WARNING' ? 'Warning' : a.severity === 'WATCH' ? 'Watch' : 'Advisory'}
                         </span>
                       </Link>
@@ -708,7 +716,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
               <div className="mt-space-md text-right">
                 <Link
                   to="/alerts"
-                  className="font-label-sm text-label-sm text-primary hover:text-primary-container font-semibold inline-flex items-center gap-1"
+                  className="inline-flex min-h-[44px] items-center gap-1 font-label-sm text-label-sm font-semibold text-primary hover:text-primary-container"
                 >
                   <span>{t('dash.viewMap')}</span>
                   <span className="material-symbols-outlined text-[14px]">open_in_new</span>
@@ -769,7 +777,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
 
               <button
                 onClick={() => navigate(`/risk/${encodeURIComponent(currentLocation)}`)}
-                className="mt-space-md font-label-sm text-label-sm text-secondary hover:text-on-secondary-container font-semibold inline-flex items-center gap-1 text-left"
+                className="mt-space-md inline-flex min-h-[44px] items-center gap-1 text-left font-label-sm text-label-sm font-semibold text-secondary hover:text-on-secondary-container"
               >
                 <span>{t('dash.viewTrend')}</span>
                 <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
@@ -782,36 +790,38 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
         {/* SECTION 4: "KNOW BEFORE IT HAPPENS" (HORIZONTAL DISASTER CATALOGUE) */}
         {/* ========================================================================= */}
         <section className="w-full bg-surface-container-low py-space-3xl border-y border-outline-variant/30">
-          <div className="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-space-md mb-space-xl">
-              <div className="max-w-xl">
-                <span className="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">
-                  {t('hazards.eyebrow')}
-                </span>
-                <h2 className="font-headline-xl text-headline-xl text-on-surface tracking-tight font-bold">
-                  {t('hazards.title')}
-                </h2>
-                <p className="font-body-md text-body-md text-on-surface-variant mt-space-xxs">
-                  {t('hazards.sub')}
-                </p>
+          <div className="mx-auto w-full min-w-0 max-w-container-max px-margin-mobile lg:px-margin-desktop">
+            <Reveal>
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-space-md mb-space-xl">
+                <div className="max-w-xl">
+                  <span className="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">
+                    {t('hazards.eyebrow')}
+                  </span>
+                  <h2 className="font-headline-xl text-headline-xl text-on-surface tracking-tight font-bold">
+                    {t('hazards.title')}
+                  </h2>
+                  <p className="font-body-md text-body-md text-on-surface-variant mt-space-xxs">
+                    {t('hazards.sub')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-space-xs">
+                  <button
+                    onClick={() => scrollCarousel('left')}
+                    aria-label={t('hazards.prev')}
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-outline-variant/30 bg-surface-container-lowest text-on-surface shadow-sm transition-all hover:bg-surface-container active:scale-95"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+                  </button>
+                  <button
+                    onClick={() => scrollCarousel('right')}
+                    aria-label={t('hazards.next')}
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-outline-variant/30 bg-surface-container-lowest text-on-surface shadow-sm transition-all hover:bg-surface-container active:scale-95"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-space-xs">
-                <button
-                  onClick={() => scrollCarousel('left')}
-                  aria-label={t('hazards.prev')}
-                  className="w-10 h-10 rounded-full bg-surface-container-lowest text-on-surface hover:bg-surface-container transition-colors flex items-center justify-center shadow-sm border border-outline-variant/30"
-                >
-                  <span className="material-symbols-outlined text-[20px]">chevron_left</span>
-                </button>
-                <button
-                  onClick={() => scrollCarousel('right')}
-                  aria-label={t('hazards.next')}
-                  className="w-10 h-10 rounded-full bg-surface-container-lowest text-on-surface hover:bg-surface-container transition-colors flex items-center justify-center shadow-sm border border-outline-variant/30"
-                >
-                  <span className="material-symbols-outlined text-[20px]">chevron_right</span>
-                </button>
-              </div>
-            </div>
+            </Reveal>
 
             {/* Scrollable Grid Container */}
             <div
@@ -822,27 +832,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
                 <Link
                   key={item.slug}
                   to={`/guides/${item.slug}`}
-                  className="min-w-[260px] md:min-w-[280px] bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col snap-start group border border-outline-variant/30"
+                  className="group flex min-w-[260px] flex-col overflow-hidden rounded-2xl border border-outline-variant/30 bg-surface-container-lowest shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg md:min-w-[280px] snap-start"
                 >
                   <div
-                    className="h-36 w-full bg-surface-container-high bg-cover bg-center"
+                    className="h-36 w-full bg-surface-container-high bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
                     style={{ backgroundImage: `url('${item.img}')` }}
                   ></div>
-                  <div className="p-space-md flex flex-col justify-between flex-1">
+                  <div className="flex flex-1 flex-col justify-between p-space-md">
                     <div>
-                      <span className="font-label-sm text-[11px] text-secondary uppercase font-bold">
+                      <span className="font-label-sm text-[11px] font-bold uppercase text-secondary">
                         {item.category}
                       </span>
-                      <h3 className="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors mt-0.5 font-bold">
+                      <h3 className="mt-0.5 break-words font-headline-sm text-headline-sm font-bold text-on-surface transition-colors group-hover:text-primary">
                         {item.title}
                       </h3>
-                      <p className="font-body-sm text-xs text-on-surface-variant mt-1 leading-relaxed">
+                      <p className="mt-1 break-words font-body-sm text-xs leading-relaxed text-on-surface-variant">
                         {item.desc}
                       </p>
                     </div>
-                    <div className="mt-space-md flex items-center justify-between text-primary pt-2 border-t border-outline-variant/20">
-                      <span className="font-label-sm text-xs font-semibold">{item.guidelines} {t('hazards.guidelines')}</span>
-                      <span className="w-7 h-7 rounded-full bg-surface-container-low flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary transition-colors">
+                    <div className="mt-space-md flex items-center justify-between border-t border-outline-variant/20 pt-2 text-primary">
+                      <span className="font-label-sm text-xs font-semibold">
+                        {item.guidelines} {t('hazards.guidelines')}
+                      </span>
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-low transition-colors group-hover:bg-primary-container group-hover:text-on-primary">
                         <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                       </span>
                     </div>
@@ -856,7 +868,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
         {/* ========================================================================= */}
         {/* SECTION 5: "BE READY BEFORE IT HAPPENS" (CHRONOLOGICAL PREPAREDNESS PHASES) */}
         {/* ========================================================================= */}
-        <section className="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop py-space-3xl w-full">
+        <section className="mx-auto w-full min-w-0 max-w-container-max px-margin-mobile py-space-3xl lg:px-margin-desktop">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-sm mb-space-xl">
             <div>
               <span className="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">
@@ -868,14 +880,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
             </div>
             <Link
               to="/guides"
-              className="font-label-md text-label-md text-primary font-bold hover:text-primary-container inline-flex items-center gap-1 transition-colors"
+              className="inline-flex min-h-[44px] items-center gap-1 font-label-md text-label-md font-bold text-primary transition-colors hover:text-primary-container"
             >
               <span>{t('prep.explore')}</span>
               <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+          <div className="jg-reveal grid grid-cols-1 md:grid-cols-3 gap-space-lg">
             {/* Phase 1: BEFORE */}
             <div className="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm border border-outline-variant/30 flex flex-col justify-between relative overflow-hidden">
               <div>
@@ -1002,7 +1014,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
         {/* SECTION 6: ESSENTIAL CIVIC RESOURCES (5 CARDS) */}
         {/* ========================================================================= */}
         <section className="w-full bg-surface-container-low py-space-3xl border-y border-outline-variant/30">
-          <div className="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop">
+          <div className="mx-auto w-full min-w-0 max-w-container-max px-margin-mobile lg:px-margin-desktop">
             <div className="max-w-2xl mb-space-xl">
               <span className="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">
                 Civic Infrastructure
@@ -1015,7 +1027,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-space-md">
+            <div className="jg-reveal grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-space-md">
               {/* Resource 1 */}
               <button
                 onClick={onOpenEmergencyModal}
@@ -1127,7 +1139,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
         {/* ========================================================================= */}
         {/* SECTION 7: "KNOW YOUR REGION" (INTERACTIVE REGIONAL RISK EXPLORER) */}
         {/* ========================================================================= */}
-        <section className="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop py-space-3xl w-full">
+        <section className="mx-auto w-full min-w-0 max-w-container-max px-margin-mobile py-space-3xl lg:px-margin-desktop">
           <div className="bg-surface-container-lowest rounded-xl p-space-lg lg:p-space-2xl shadow-sm border border-outline-variant/30">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-lg pb-space-lg border-b border-outline-variant/20">
               <div>
@@ -1178,7 +1190,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
             </div>
 
             {/* Regional Information Display Board */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-md pt-space-lg">
+            <div className="jg-reveal grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-md pt-space-lg">
               <div className="p-space-md rounded-lg bg-surface-container-low flex flex-col justify-between border border-outline-variant/20">
                 <div>
                   <span className="font-label-sm text-xs text-on-surface-variant">Primary Documented Hazards</span>
@@ -1224,7 +1236,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
                 </div>
                 <Link
                   to={`/risk/${encodeURIComponent(selectedDistrict)}`}
-                  className="font-label-sm text-xs text-primary font-bold hover:underline"
+                  className="inline-flex min-h-[44px] items-center font-label-sm text-xs font-bold text-primary hover:underline"
                 >
                   View Shelter Map →
                 </Link>
@@ -1239,7 +1251,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
                 </div>
                 <a
                   href={`tel:${regionData.nearestUnitPhone}`}
-                  className="font-label-sm text-xs text-secondary font-bold hover:underline"
+                  className="inline-flex min-h-[44px] items-center font-label-sm text-xs font-bold text-secondary hover:underline"
                 >
                   Direct Emergency Dispatch →
                 </a>
@@ -1259,9 +1271,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
         {/* SECTION 8: COMMUNITY RESILIENCE & DATA TRANSPARENCY */}
         {/* ========================================================================= */}
         <section className="w-full bg-surface-container-low py-space-3xl border-t border-outline-variant/30">
-          <div className="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop">
+          <div className="mx-auto w-full min-w-0 max-w-container-max px-margin-mobile lg:px-margin-desktop">
             {/* Key Statistics Row */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-space-md mb-space-2xl">
+            <div className="jg-reveal grid grid-cols-2 lg:grid-cols-4 gap-space-md mb-space-2xl">
               <div className="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm border border-outline-variant/30 flex flex-col">
                 <span className="font-display-lg text-display-lg text-primary font-bold">28 + 8</span>
                 <span className="font-headline-sm text-headline-sm text-on-surface mt-1 font-bold">States &amp; UTs</span>
@@ -1325,6 +1337,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenEmergencyModal }
           </div>
         </section>
       </div>
+
+      <FloatingAssistant />
     </main>
   );
 };

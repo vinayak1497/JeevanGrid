@@ -22,6 +22,13 @@ import advisoriesRoutes from './routes/advisoriesRoutes';
 import languageRoutes from './routes/languageRoutes';
 import subscriptionRoutes from './routes/subscriptionRoutes';
 import healthIntelligenceRoutes from './routes/healthIntelligenceRoutes';
+import impactRoutes from './routes/impactRoutes';
+import communityRoutes from './routes/communityRoutes';
+import playbookRoutes from './routes/playbookRoutes';
+import evacuationRoutes from './routes/evacuationRoutes';
+import acknowledgementRoutes from './routes/acknowledgementRoutes';
+import satelliteRoutes from './routes/satelliteRoutes';
+import uploadRoutes from './routes/uploadRoutes';
 import { getAlertSystemHealth } from './controllers/systemHealthController';
 import { authenticateToken, requireRole } from './middleware/authMiddleware';
 
@@ -36,7 +43,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-app.use(express.json());
+// Larger limit only for the validated photo/satellite ingest routes; all
+// controllers cap payloads and validate content types.
+app.use(express.json({ limit: '12mb' }));
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -57,6 +66,13 @@ app.use('/api/facilities', facilitiesRoutes);
 app.use('/api/advisories', advisoriesRoutes);
 app.use('/api', subscriptionRoutes);
 app.use('/api/health-intelligence', healthIntelligenceRoutes);
+app.use('/api/impact', impactRoutes);
+app.use('/api/community', communityRoutes);
+app.use('/api/playbooks', playbookRoutes);
+app.use('/api/evacuation', evacuationRoutes);
+app.use('/api/alert-acknowledgements', acknowledgementRoutes);
+app.use('/api/satellite', satelliteRoutes);
+app.use('/api/uploads', uploadRoutes);
 // Protected operations view of the warning pipeline (EOC debugging +
 // hackathon demonstration). Authenticated EOC roles only.
 app.get(

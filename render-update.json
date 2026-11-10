@@ -1,0 +1,56 @@
+﻿{
+  "data": {
+    "autoDeploy": "yes",
+    "autoDeployTrigger": "commit",
+    "branch": "main",
+    "createdAt": "2026-09-10T03:34:55.077629Z",
+    "dashboardUrl": "https://dashboard.render.com/web/srv-dah2anh42hec73efhufg",
+    "id": "srv-dah2anh42hec73efhufg",
+    "name": "JeevanGrid",
+    "notifyOnFail": "default",
+    "ownerId": "tea-d7ockj8g4nts7396f23g",
+    "repo": "https://github.com/vinayak1497/JeevanGrid",
+    "rootDir": "server",
+    "serviceDetails": {
+      "buildPlan": "starter",
+      "cache": {
+        "profile": "no-cache"
+      },
+      "env": "node",
+      "envSpecificDetails": {
+        "buildCommand": "npm install \u0026\u0026 npx prisma generate \u0026\u0026 npx prisma migrate deploy \u0026\u0026 npm run build",
+        "startCommand": "npm start"
+      },
+      "healthCheckPath": "/api/health",
+      "ipAllowList": [
+        {
+          "cidrBlock": "0.0.0.0/0",
+          "description": "everywhere"
+        }
+      ],
+      "maintenanceMode": {
+        "enabled": false,
+        "uri": ""
+      },
+      "numInstances": 1,
+      "openPorts": [],
+      "plan": "free",
+      "previews": {
+        "generation": "off"
+      },
+      "pullRequestPreviewsEnabled": "no",
+      "region": "singapore",
+      "renderSubdomainPolicy": "enabled",
+      "runtime": "node",
+      "sshAddress": "srv-dah2anh42hec73efhufg@ssh.singapore.render.com",
+      "url": "https://jeevangrid.onrender.com"
+    },
+    "slug": "jeevangrid",
+    "suspended": "not_suspended",
+    "suspenders": [],
+    "type": "web_service",
+    "updatedAt": "2026-11-10T11:14:49.515549Z",
+    "environmentId": "evm-dah27ap5efls73fmdveg",
+    "projectId": "prj-dah27ap5efls73fmdve0"
+  }
+}

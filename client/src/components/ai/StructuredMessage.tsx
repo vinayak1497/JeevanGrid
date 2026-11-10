@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getStrings } from './assistantI18n';
 
@@ -189,7 +189,7 @@ export const StructuredMessage: React.FC<Props> = ({
                     {f.phone && (
                       <a
                         href={`tel:${f.phone.replace(/[^+\d]/g, '')}`}
-                        className="px-2.5 py-1 rounded-md bg-primary text-on-primary font-bold shrink-0"
+                        className="min-h-[44px] px-3 py-2 rounded-xl bg-primary text-on-primary font-bold shrink-0"
                       >
                         Call
                       </a>
@@ -257,7 +257,7 @@ export const StructuredMessage: React.FC<Props> = ({
                 <button
                   onClick={() => (paused ? onResumeListen() : onPauseListen())}
                   aria-label={paused ? 'Resume reading' : 'Pause reading'}
-                  className="inline-flex items-center gap-1 font-bold text-secondary hover:text-on-secondary-container min-h-[28px]"
+                  className="inline-flex items-center gap-1 font-bold text-secondary hover:text-on-secondary-container min-h-[44px]"
                 >
                   <span className="material-symbols-outlined text-[15px]" aria-hidden="true">
                     {paused ? 'play_arrow' : 'pause'}
@@ -267,7 +267,7 @@ export const StructuredMessage: React.FC<Props> = ({
                 <button
                   onClick={onStopListen}
                   aria-label={t.stop}
-                  className="inline-flex items-center gap-1 font-bold text-secondary hover:text-on-secondary-container min-h-[28px]"
+                  className="inline-flex items-center gap-1 font-bold text-secondary hover:text-on-secondary-container min-h-[44px]"
                 >
                   <span className="material-symbols-outlined text-[15px]" aria-hidden="true">stop_circle</span>
                   {t.stop}
@@ -278,7 +278,7 @@ export const StructuredMessage: React.FC<Props> = ({
               <button
                 onClick={onListen}
                 aria-label={t.listen}
-                className="inline-flex items-center gap-1 font-bold text-secondary hover:text-on-secondary-container min-h-[28px]"
+                className="inline-flex items-center gap-1 font-bold text-secondary hover:text-on-secondary-container min-h-[44px]"
               >
                 <span className="material-symbols-outlined text-[15px]" aria-hidden="true">
                   {listening ? 'graphic_eq' : 'volume_up'}

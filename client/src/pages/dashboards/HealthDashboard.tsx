@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
@@ -138,7 +138,7 @@ export const HealthDashboard: React.FC = () => {
   }
 
   if (loading) {
-    return <div className="pt-28 pb-20 text-center text-xs text-on-surface-variant">Loading Public Health Intelligence Hub...</div>;
+    return <div className="jg-page flex min-h-[70dvh] items-center justify-center text-center text-xs text-on-surface-variant">Loading Public Health Intelligence Hub...</div>;
   }
 
   const summary = data?.summary || {};
@@ -151,7 +151,7 @@ export const HealthDashboard: React.FC = () => {
     (hi?.assessment?.indicators || []).find((i: any) => i.key === key)?.score ?? null;
 
   return (
-    <main className="w-full pt-20 pb-space-3xl min-h-screen bg-surface">
+    <main className="jg-page min-h-[100dvh] bg-surface pb-space-3xl">
       <section className="bg-surface-container-low py-space-lg border-b border-outline-variant/30">
         <div className="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop flex flex-col md:flex-row md:items-center justify-between gap-space-md">
           <div>
@@ -165,17 +165,17 @@ export const HealthDashboard: React.FC = () => {
               Health Officer: <strong>{user?.name || 'Dr. Sunita Deshmukh, MD'}</strong> • Surveillance Level: Active
             </p>
           </div>
-          <form onSubmit={handleAssess} className="flex gap-2 w-full md:w-auto">
+          <form onSubmit={handleAssess} className="flex w-full gap-2 md:w-auto">
             <input
               value={locationInput}
               onChange={(e) => setLocationInput(e.target.value)}
               placeholder="Assess location (e.g. Thane, Maharashtra)"
-              className="h-10 px-3 rounded-lg bg-surface-container-lowest text-on-surface text-xs border border-outline-variant/30 outline-none focus:border-primary flex-1 md:w-72"
+              className="h-11 min-w-0 flex-1 rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-3 text-on-surface text-xs outline-none focus:border-primary md:w-72"
             />
             <button
               type="submit"
               disabled={assessLoading}
-              className="h-10 px-4 rounded-lg bg-primary text-on-primary text-xs font-bold disabled:opacity-50"
+              className="h-11 shrink-0 rounded-xl bg-primary px-4 text-xs font-bold text-on-primary disabled:opacity-50"
             >
               {assessLoading ? 'Assessing…' : 'Assess'}
             </button>
@@ -280,7 +280,7 @@ export const HealthDashboard: React.FC = () => {
                 </ul>
                 <button
                   onClick={() => setExpanded((p) => ({ ...p, [ind.key]: !p[ind.key] }))}
-                  className="mt-2 text-[11px] font-bold text-primary hover:underline"
+                  className="mt-2 inline-flex min-h-[44px] items-center text-[11px] font-bold text-primary hover:underline"
                   aria-expanded={!!expanded[ind.key]}
                 >
                   {expanded[ind.key] ? 'Hide — why this risk? ▲' : 'Why this risk? ▼'}
@@ -380,7 +380,7 @@ export const HealthDashboard: React.FC = () => {
                   key={s.key}
                   onClick={() => handleScenario(s.key)}
                   disabled={scenarioLoading || !shown}
-                  className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-colors disabled:opacity-50 ${
+                  className={`min-h-[44px] px-3 py-2 rounded-xl text-xs font-bold border transition-colors disabled:opacity-50 ${
                     scenarioKey === s.key
                       ? 'bg-primary text-on-primary border-primary'
                       : 'bg-surface-container-low text-on-surface border-outline-variant/30 hover:border-primary'
@@ -392,7 +392,7 @@ export const HealthDashboard: React.FC = () => {
               {scenario && (
                 <button
                   onClick={() => { setScenario(null); setScenarioKey(null); }}
-                  className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-on-surface-variant hover:text-on-surface"
+                  className="inline-flex min-h-[44px] items-center rounded-xl px-3 py-2 text-xs font-bold text-on-surface-variant hover:text-on-surface"
                 >
                   Back to live assessment
                 </button>
@@ -461,30 +461,72 @@ export const HealthDashboard: React.FC = () => {
             Facility Bed &amp; Trauma Surge Capacities
           </h2>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+          {/* Phones get a card list; wide screens get the full table. A
+              7-column table cannot work at 360px without truncation. */}
+          <div className="flex flex-col gap-2 lg:hidden">
+            {data?.hospitals?.map((h: any) => (
+              <div
+                key={h.id}
+                className="rounded-xl border border-outline-variant/30 bg-surface-container-low p-3"
+              >
+                <p className="break-words text-sm font-bold text-on-surface">{h.name}</p>
+                <p className="mt-0.5 text-[11px] text-on-surface-variant">{h.district}</p>
+                <dl className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
+                  <div className="min-w-0">
+                    <dt className="text-on-surface-variant">Total beds</dt>
+                    <dd className="jg-code text-on-surface">{h.totalBeds}</dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="text-on-surface-variant">Available</dt>
+                    <dd className="jg-code font-bold text-primary">{h.availableBeds}</dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="text-on-surface-variant">ICU</dt>
+                    <dd className="jg-code font-bold text-secondary">{h.availableIcuBeds}</dd>
+                  </div>
+                </dl>
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <span className="text-[11px] text-on-surface-variant">
+                    Oxygen: {h.oxygenStockDays} days
+                  </span>
+                  <a
+                    href={`tel:${h.contactPhone}`}
+                    className="inline-flex min-h-[44px] items-center rounded-lg bg-surface-container-high px-3 text-[11px] font-bold text-primary"
+                  >
+                    Call dispatch
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto lg:block">
+            <table className="w-full border-collapse text-left text-xs">
               <thead>
-                <tr className="border-b border-outline-variant/30 text-on-surface-variant text-[11px] uppercase">
-                  <th className="py-2.5 px-3">Hospital Name</th>
-                  <th className="py-2.5 px-3">District</th>
-                  <th className="py-2.5 px-3">Total Beds</th>
-                  <th className="py-2.5 px-3">Available Beds</th>
-                  <th className="py-2.5 px-3">Available ICU</th>
-                  <th className="py-2.5 px-3">Oxygen Stock</th>
-                  <th className="py-2.5 px-3">Dispatch Contact</th>
+                <tr className="border-b border-outline-variant/30 text-[11px] uppercase text-on-surface-variant">
+                  <th className="px-3 py-2.5">Hospital Name</th>
+                  <th className="px-3 py-2.5">District</th>
+                  <th className="px-3 py-2.5">Total Beds</th>
+                  <th className="px-3 py-2.5">Available Beds</th>
+                  <th className="px-3 py-2.5">Available ICU</th>
+                  <th className="px-3 py-2.5">Oxygen Stock</th>
+                  <th className="px-3 py-2.5">Dispatch Contact</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/20">
                 {data?.hospitals?.map((h: any) => (
-                  <tr key={h.id} className="hover:bg-surface-container-low transition-colors">
-                    <td className="py-3 px-3 font-bold text-on-surface">{h.name}</td>
-                    <td className="py-3 px-3 text-on-surface-variant">{h.district}</td>
-                    <td className="py-3 px-3 font-code-num">{h.totalBeds}</td>
-                    <td className="py-3 px-3 font-code-num font-bold text-primary">{h.availableBeds}</td>
-                    <td className="py-3 px-3 font-code-num font-bold text-secondary">{h.availableIcuBeds}</td>
-                    <td className="py-3 px-3 font-code-num">{h.oxygenStockDays} days</td>
-                    <td className="py-3 px-3">
-                      <a href={`tel:${h.contactPhone}`} className="text-primary font-bold hover:underline font-code-num">
+                  <tr key={h.id} className="transition-colors hover:bg-surface-container-low">
+                    <td className="px-3 py-3 font-bold text-on-surface">{h.name}</td>
+                    <td className="px-3 py-3 text-on-surface-variant">{h.district}</td>
+                    <td className="jg-code px-3 py-3">{h.totalBeds}</td>
+                    <td className="jg-code px-3 py-3 font-bold text-primary">{h.availableBeds}</td>
+                    <td className="jg-code px-3 py-3 font-bold text-secondary">{h.availableIcuBeds}</td>
+                    <td className="jg-code px-3 py-3">{h.oxygenStockDays} days</td>
+                    <td className="px-3 py-3">
+                      <a
+                        href={`tel:${h.contactPhone}`}
+                        className="font-code-num font-bold text-primary hover:underline"
+                      >
                         {h.contactPhone}
                       </a>
                     </td>

@@ -8,63 +8,68 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(uuid())
+  id           String   @id @default(uuid())
   name         String
-  email        String        @unique
+  email        String   @unique
   passwordHash String
-  role         String        // CITIZEN, DISTRICT_OFFICER, FIELD_RESPONDER, HEALTH_OFFICER, STATE_EOC, COMMUNITY_VOLUNTEER
-  state        String        @default("Maharashtra")
-  district     String        @default("Mumbai Suburban")
+  role         String // CITIZEN, DISTRICT_OFFICER, FIELD_RESPONDER, HEALTH_OFFICER, STATE_EOC, COMMUNITY_VOLUNTEER
+  state        String   @default("Maharashtra")
+  district     String   @default("Mumbai Suburban")
   phone        String?
-  createdAt    DateTime      @default(now())
+  createdAt    DateTime @default(now())
 
-  assignedIncidents Incident[]    @relation("AssignedResponder")
-  fieldReports      FieldReport[]
+  assignedIncidents   Incident[]        @relation("AssignedResponder")
+  verifiedIncidents   Incident[]        @relation("IncidentVerifier")
+  assignedByIncidents Incident[]        @relation("IncidentAssigner")
+  reviewedIncidents   Incident[]        @relation("ResolutionReviewer")
+  reportedIncidents   EmergencyReport[] @relation("ReportedByCitizen")
+  fieldReports        FieldReport[]
+  incidentEvents      IncidentEvent[]
 }
 
 model DisasterAlert {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
   description String
-  hazardType  String   // Rain, Flood, Cyclone, Heatwave, Landslide, Lightning, Fire, Earthquake
-  severity    String   // INFO, WATCH, WARNING, CRITICAL
+  hazardType  String // Rain, Flood, Cyclone, Heatwave, Landslide, Lightning, Fire, Earthquake
+  severity    String // INFO, WATCH, WARNING, CRITICAL
   state       String
   district    String
   latitude    Float
   longitude   Float
-  issuedAt    DateTime @default(now())
+  issuedAt    DateTime  @default(now())
   expiresAt   DateTime?
-  source      String   @default("IMD / NDMA")
-  status      String   @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED, UPDATED, PENDING_VERIFICATION
+  source      String    @default("IMD / NDMA")
+  status      String    @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED, UPDATED, PENDING_VERIFICATION
 
   // ── Provenance / source traceability (100% source traceability, never 100% accuracy) ──
-  sourceType     String    @default("OFFICIAL") // OFFICIAL | INTELLIGENCE | COMMUNITY
-  sourceAlertId  String?                       // upstream identifier (CAP identifier, etc.)
-  sourceUrl      String?                       // original bulletin URL / CAP link
-  sourceReference String?                      // feed reference / RSS guid
-  authority      String?                       // issuing authority display name (e.g. "India Meteorological Department")
-  sender         String?                       // CAP sender
-  eventType      String?                       // CAP event
-  urgency        String?                       // CAP urgency
-  certainty      String?                       // CAP certainty
-  msgType        String?                       // CAP msgType: Alert | Update | Cancel | Ack | Error
-  scope          String?                       // CAP scope
-  category       String?                       // CAP category
-  language       String?   @default("en")
-  headline       String?
-  instruction    String?
-  effectiveAt    DateTime?
-  onsetAt        DateTime?
-  affectedAreas  String?                       // JSON string array
-  geometry       String?                       // GeoJSON / polygon-circle string
-  rawPayload     String?                       // original machine-readable source payload (JSON)
-  isVerified     Boolean   @default(false)
-  isLive         Boolean   @default(false)
-  isDemoData     Boolean   @default(false)
-  ingestedAt     DateTime  @default(now())
-  lastCheckedAt  DateTime  @default(now())
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  sourceType      String    @default("OFFICIAL") // OFFICIAL | INTELLIGENCE | COMMUNITY
+  sourceAlertId   String? // upstream identifier (CAP identifier, etc.)
+  sourceUrl       String? // original bulletin URL / CAP link
+  sourceReference String? // feed reference / RSS guid
+  authority       String? // issuing authority display name (e.g. "India Meteorological Department")
+  sender          String? // CAP sender
+  eventType       String? // CAP event
+  urgency         String? // CAP urgency
+  certainty       String? // CAP certainty
+  msgType         String? // CAP msgType: Alert | Update | Cancel | Ack | Error
+  scope           String? // CAP scope
+  category        String? // CAP category
+  language        String?   @default("en")
+  headline        String?
+  instruction     String?
+  effectiveAt     DateTime?
+  onsetAt         DateTime?
+  affectedAreas   String? // JSON string array
+  geometry        String? // GeoJSON / polygon-circle string
+  rawPayload      String? // original machine-readable source payload (JSON)
+  isVerified      Boolean   @default(false)
+  isLive          Boolean   @default(false)
+  isDemoData      Boolean   @default(false)
+  ingestedAt      DateTime  @default(now())
+  lastCheckedAt   DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@unique([source, sourceAlertId])
   @@index([status, expiresAt])
@@ -108,7 +113,7 @@ model AlertFeedCache {
 model AlertAuditLog {
   id            String   @id @default(uuid())
   timestamp     DateTime @default(now())
-  action        String   // CREATED | UPDATED | CANCELLED | EXPIRED | VERIFIED | REJECTED
+  action        String // CREATED | UPDATED | CANCELLED | EXPIRED | VERIFIED | REJECTED
   source        String
   sourceAlertId String?
   alertId       String?
@@ -156,7 +161,7 @@ model AlertNotificationLog {
   source        String
   sourceAlertId String
   endpointHash  String
-  action        String   // NEW | UPDATED
+  action        String // NEW | UPDATED
   sentAt        DateTime @default(now())
 
   @@unique([source, sourceAlertId, endpointHash, action])
@@ -164,64 +169,176 @@ model AlertNotificationLog {
 }
 
 model EmergencyReport {
-  id             String    @id // e.g. JG-2026-00421
+  id             String   @id // e.g. JG-2026-AB72K9
   citizenName    String
   phone          String
   locationName   String
   latitude       Float?
   longitude      Float?
-  emergencyType  String    // Flood, Fire, Earthquake, Medical, Landslide, Trapped Person, Infrastructure Damage, Other
-  urgency        String    // Critical, High, Moderate
-  peopleAffected Int       @default(1)
+  district       String   @default("Mumbai Suburban")
+  state          String   @default("Maharashtra")
+  emergencyType  String // Flood, Fire, Earthquake, Medical, Landslide, Trapped Person, Infrastructure Damage, Other
+  urgency        String // Critical, High, Moderate
+  peopleAffected Int      @default(1)
   description    String
   photoUrl       String?
-  status         String    @default("PENDING") // PENDING, DISPATCHED, RESOLVED
-  createdAt      DateTime  @default(now())
+  status         String   @default("PENDING") // PENDING, DISPATCHED, RESOLVED, REJECTED
+  createdAt      DateTime @default(now())
 
-  incident       Incident?
+  // Community ground-truth fields (Feature 2/3) — additive, backward compatible.
+  category           String? // FLOODING, ROAD_BLOCKED, BRIDGE_DAMAGED, TREE_FALLEN, STRANDED, MEDICAL, INFRASTRUCTURE, RESOURCE_SHORTAGE, OTHER
+  verificationStatus String  @default("UNVERIFIED") // UNVERIFIED, DUPLICATE_SUSPECTED, CORROBORATED, OFFICER_VERIFIED, REJECTED, RESOLVED
+  corroborationCount Int     @default(0)
+  vulnerablePersons  String? // JSON string array
+  requiredAssistance String? // JSON string array
+  language           String  @default("en")
+  aiClassification   String? // JSON: provider, category, confidence, summary
+  idempotencyKey     String? @unique // offline queue duplicate prevention
+
+  // Citizen identity/provenance and location provenance. A report can be sent
+  // by a guest without an account; authenticated citizens are linked by ID.
+  reportedByUserId      String?
+  reportedBy            User?     @relation("ReportedByCitizen", fields: [reportedByUserId], references: [id], onDelete: SetNull)
+  reporterType          String    @default("GUEST") // GUEST, AUTHENTICATED_CITIZEN
+  reportSource          String    @default("CITIZEN_FORM") // CITIZEN_FORM, AI_ASSISTANT
+  originalDescription   String? // citizen's own words, preserved verbatim
+  aiSummary             String? // advisory structured summary, never a verification
+  accuracyM             Float?
+  locationSource        String? // GPS, MANUAL_MAP, MANUAL_ADDRESS, NONE
+  locationCapturedAt    DateTime?
+  locationConfirmed     Boolean   @default(false)
+  locality              String?
+  vulnerablePersonsInfo String?
+  isDemo                Boolean   @default(false)
+
+  incident           Incident?
+  verificationAudits ReportVerificationAudit[]
+  corroborations     ReportCorroboration[]
+
+  @@index([verificationStatus, createdAt])
+  @@index([category, createdAt])
+  @@index([reportedByUserId])
+  @@index([reportSource, createdAt])
+}
+
+model ReportCorroboration {
+  id        String          @id @default(uuid())
+  reportId  String
+  report    EmergencyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  userId    String
+  userRole  String
+  note      String?
+  createdAt DateTime        @default(now())
+
+  @@unique([reportId, userId])
+  @@index([reportId, createdAt])
 }
 
 model Incident {
-  id             String           @id @default(uuid())
-  reportId       String?          @unique
-  report         EmergencyReport? @relation(fields: [reportId], references: [id])
-  title          String
-  description    String
-  emergencyType  String
-  urgency        String           @default("Moderate")
-  status         String           @default("NEW") // NEW, ASSIGNED, IN_PROGRESS, RESOLVED
-  district       String           @default("Mumbai Suburban")
-  state          String           @default("Maharashtra")
-  locationName   String
-  latitude       Float?
-  longitude      Float?
-  assignedToId   String?
-  assignedTo     User?            @relation("AssignedResponder", fields: [assignedToId], references: [id])
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  id                 String           @id @default(uuid())
+  referenceCode      String           @unique // JG-2026-AB72K9; never a guessable sequential ID
+  reportId           String?          @unique
+  report             EmergencyReport? @relation(fields: [reportId], references: [id])
+  title              String
+  description        String
+  emergencyType      String
+  urgency            String           @default("Moderate")
+  status             String           @default("NEW") // NEW, VERIFIED, ASSIGNED, ACCEPTED, EN_ROUTE, ON_SITE, IN_PROGRESS, RESOLVED_PENDING_REVIEW, RESOLVED, REJECTED, DUPLICATE_SUSPECTED, REOPENED
+  district           String           @default("Mumbai Suburban")
+  state              String           @default("Maharashtra")
+  locationName       String
+  latitude           Float?
+  longitude          Float?
+  accuracyM          Float?
+  locationSource     String?
+  locationCapturedAt DateTime?
+  locationConfirmed  Boolean          @default(false)
+  reportSource       String           @default("CITIZEN_FORM")
+  reporterType       String           @default("GUEST")
+  isDemo             Boolean          @default(false)
 
-  fieldReports   FieldReport[]
+  verifiedById         String?
+  verifiedBy           User?     @relation("IncidentVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedAt           DateTime?
+  duplicateSuspected   Boolean   @default(false)
+  duplicateOfReference String?
+
+  assignedToId    String?
+  assignedTo      User?     @relation("AssignedResponder", fields: [assignedToId], references: [id], onDelete: SetNull)
+  assignedById    String?
+  assignedBy      User?     @relation("IncidentAssigner", fields: [assignedById], references: [id], onDelete: SetNull)
+  assignedAt      DateTime?
+  assignmentNotes String?
+
+  resolutionSubmittedAt  DateTime?
+  resolutionReviewedById String?
+  resolutionReviewedBy   User?     @relation("ResolutionReviewer", fields: [resolutionReviewedById], references: [id], onDelete: SetNull)
+  resolutionReviewedAt   DateTime?
+  resolutionDecision     String? // APPROVED, REJECTED, REOPENED
+  resolutionReviewNotes  String?
+  resolvedAt             DateTime?
+  closedAt               DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fieldReports FieldReport[]
+  events       IncidentEvent[]
+
+  @@index([district, status, createdAt])
+  @@index([assignedToId, status])
+}
+
+model IncidentEvent {
+  id             String   @id @default(uuid())
+  incidentId     String
+  incident       Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  actorUserId    String?
+  actor          User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  actorRole      String
+  eventType      String
+  previousStatus String?
+  newStatus      String?
+  description    String
+  metadata       String? // JSON string; append-only snapshot for audit
+  createdAt      DateTime @default(now())
+
+  @@index([incidentId, createdAt])
+  @@index([eventType, createdAt])
+  @@index([actorUserId])
 }
 
 model FieldReport {
-  id                 String    @id @default(uuid())
-  incidentId         String
-  incident           Incident  @relation(fields: [incidentId], references: [id])
-  responderId        String
-  responder          User      @relation(fields: [responderId], references: [id])
-  responderName      String
-  situationReport    String
-  casualtiesRescued  Int       @default(0)
-  medicalRequired    Boolean   @default(false)
-  notes              String?
-  photoUrl           String?
-  latitude           Float?
-  longitude          Float?
-  submittedAt        DateTime  @default(now())
+  id                    String   @id @default(uuid())
+  incidentId            String
+  incident              Incident @relation(fields: [incidentId], references: [id])
+  responderId           String
+  responder             User     @relation(fields: [responderId], references: [id])
+  responderName         String
+  reportType            String   @default("SITUATION") // SITUATION, ARRIVAL, RESOLUTION
+  situationReport       String
+  situationAfter        String?
+  remainingProblems     String?
+  peopleAssisted        Int?
+  actionTaken           String?
+  casualtiesRescued     Int      @default(0)
+  medicalRequired       Boolean  @default(false)
+  notes                 String?
+  photoUrl              String?
+  latitude              Float?
+  longitude             Float?
+  arrivalAccuracyM      Float?
+  distanceFromIncidentM Float?
+  checkInSource         String? // GPS, MANUAL
+  idempotencyKey        String?  @unique
+  submittedAt           DateTime @default(now())
+
+  @@index([incidentId, submittedAt])
+  @@index([incidentId, reportType, submittedAt])
 }
 
 model Hospital {
-  id               String   @id @default(uuid())
+  id               String @id @default(uuid())
   name             String
   district         String
   state            String
@@ -229,7 +346,7 @@ model Hospital {
   availableBeds    Int
   icuBeds          Int
   availableIcuBeds Int
-  oxygenStockDays  Float    @default(5.0)
+  oxygenStockDays  Float  @default(5.0)
   contactPhone     String
   address          String
   latitude         Float
@@ -237,13 +354,13 @@ model Hospital {
 }
 
 model Shelter {
-  id               String   @id @default(uuid())
+  id               String @id @default(uuid())
   name             String
   district         String
   state            String
   capacity         Int
-  currentOccupancy Int      @default(0)
-  amenities        String   // JSON or comma separated string
+  currentOccupancy Int    @default(0)
+  amenities        String // JSON or comma separated string
   contactPerson    String
   contactPhone     String
   address          String
@@ -252,33 +369,33 @@ model Shelter {
 }
 
 model Resource {
-  id                String   @id @default(uuid())
+  id                String @id @default(uuid())
   name              String
   type              String
   district          String
   state             String
   quantity          Int
   availableQuantity Int
-  status            String   @default("READY")
+  status            String @default("READY")
   contactPhone      String
 }
 
 model SafetyGuide {
-  id                 String   @id @default(uuid())
-  slug               String   @unique
+  id                 String  @id @default(uuid())
+  slug               String  @unique
   title              String
   hazardType         String
   category           String
   summary            String
-  guidelineCount     Int      @default(12)
+  guidelineCount     Int     @default(12)
   imageUrl           String?
-  beforeSteps        String   // JSON string
-  duringSteps        String   // JSON string
-  afterSteps         String   // JSON string
-  dos                String   // JSON string
-  donts              String   // JSON string
-  kitItems           String   // JSON string
-  evacuationTriggers String   // JSON string
+  beforeSteps        String // JSON string
+  duringSteps        String // JSON string
+  afterSteps         String // JSON string
+  dos                String // JSON string
+  donts              String // JSON string
+  kitItems           String // JSON string
+  evacuationTriggers String // JSON string
 }
 
 model WeatherSnapshot {
@@ -304,14 +421,160 @@ model HealthAssessment {
   state          String
   latitude       Float
   longitude      Float
-  inputSnapshot  String   // JSON: climate/air/flood inputs
-  riskScores     String   // JSON: per-indicator { level, score }
-  interpretation String?  // JSON: Nugen interpretation (null when unavailable)
+  inputSnapshot  String // JSON: climate/air/flood inputs
+  riskScores     String // JSON: per-indicator { level, score }
+  interpretation String? // JSON: Nugen interpretation (null when unavailable)
   nugenModel     String?
-  confidence     String   // HIGH | MEDIUM | LOW | INSUFFICIENT
+  confidence     String // HIGH | MEDIUM | LOW | INSUFFICIENT
   isScenario     Boolean  @default(false)
   createdAt      DateTime @default(now())
 
   @@index([district, createdAt])
   @@index([createdAt])
+}
+
+// ── Feature 2: community ground truth verification audit trail ──
+model ReportVerificationAudit {
+  id         String          @id @default(uuid())
+  reportId   String
+  report     EmergencyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  action     String // CLASSIFIED | CORROBORATED | DUPLICATE_SUSPECTED | OFFICER_VERIFIED | REJECTED | RESOLVED
+  fromStatus String?
+  toStatus   String
+  actorId    String?
+  actorRole  String?
+  note       String?
+  metadata   String? // JSON
+  createdAt  DateTime        @default(now())
+
+  @@index([reportId, createdAt])
+}
+
+// ── Feature 1: impact-based exposure assessments (cached calculations) ──
+model ImpactAssessment {
+  id                String   @id @default(uuid())
+  cacheKey          String   @unique
+  hazardType        String
+  locationName      String
+  district          String
+  state             String
+  latitude          Float
+  longitude         Float
+  areaKm2           Float?
+  populationExposed Int?
+  populationDensity Float?
+  childrenExposed   Int?
+  elderlyExposed    Int?
+  hospitalsExposed  Int?
+  schoolsExposed    Int?
+  roadsExposed      Int?
+  confidence        String // HIGH | MEDIUM | LOW | INSUFFICIENT
+  precision         String // EXACT_POLYGON | DISTRICT_APPROXIMATION | SIMULATION
+  isSimulation      Boolean  @default(false)
+  populationSource  String?
+  dataYear          Int?
+  limitations       String?
+  evidence          String? // JSON: inputs, facility source, warnings
+  geometry          String? // GeoJSON polygon used for the calculation
+  sourceAlertId     String?
+  createdAt         DateTime @default(now())
+
+  @@index([district, createdAt])
+  @@index([hazardType, createdAt])
+}
+
+// ── Feature 4: early action playbooks ──
+model PlaybookActivation {
+  id              String   @id @default(uuid())
+  templateId      String
+  hazardType      String
+  triggerType     String // OFFICIAL_ALERT | RISK_SCORE | MANUAL | SIMULATION
+  triggerSummary  String
+  district        String
+  state           String
+  status          String   @default("ACTIVE") // ACTIVE | COMPLETED | CANCELLED
+  activatedById   String?
+  activatedByName String?
+  isSimulation    Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tasks PlaybookTask[]
+  audit PlaybookAudit[]
+
+  @@index([district, status, createdAt])
+}
+
+model PlaybookTask {
+  id              String             @id @default(uuid())
+  activationId    String
+  activation      PlaybookActivation @relation(fields: [activationId], references: [id], onDelete: Cascade)
+  role            String
+  title           String
+  description     String
+  dueBy           DateTime?
+  status          String             @default("PENDING") // PENDING | IN_PROGRESS | COMPLETED (OVERDUE derived at read)
+  evidence        String?
+  completedById   String?
+  completedByName String?
+  completedAt     DateTime?
+  createdAt       DateTime           @default(now())
+
+  @@index([activationId, role, status])
+}
+
+model PlaybookAudit {
+  id           String             @id @default(uuid())
+  activationId String
+  activation   PlaybookActivation @relation(fields: [activationId], references: [id], onDelete: Cascade)
+  action       String // ACTIVATED | TASK_COMPLETED | TASK_IN_PROGRESS | COMPLETED | CANCELLED
+  actorId      String?
+  actorRole    String?
+  note         String?
+  createdAt    DateTime           @default(now())
+
+  @@index([activationId, createdAt])
+}
+
+// ── Feature 7: alert acknowledgement & community feedback ──
+model AlertAcknowledgement {
+  id            String   @id @default(uuid())
+  alertId       String
+  sourceAlertId String?
+  userId        String
+  district      String
+  state         String   @default("")
+  response      String // RECEIVED | SAFE | NEED_ASSISTANCE | CANNOT_EVACUATE | NEED_INFO
+  note          String?
+  incidentId    String?
+  createdAt     DateTime @default(now())
+
+  @@unique([userId, alertId, response])
+  @@index([district, response, createdAt])
+  @@index([alertId])
+}
+
+// ── Feature 8: satellite-derived impact layers (manual import + provider metadata) ──
+model SatelliteLayer {
+  id                 String   @id @default(uuid())
+  eventName          String
+  areaName           String
+  district           String
+  state              String
+  sourceOrganisation String
+  observationDate    DateTime
+  processedDate      DateTime
+  productReference   String
+  geometryPrecision  String // EXACT | APPROXIMATE
+  verificationStatus String // UNVERIFIED | VERIFIED
+  sourceType         String   @default("MANUAL_IMPORT") // MANUAL_IMPORT | COPERNICUS_CATALOGUE
+  geojson            String
+  featureCount       Int
+  bbox               String? // JSON [west, south, east, north]
+  uploadedById       String?
+  uploadedByName     String?
+  isSimulation       Boolean  @default(false)
+  createdAt          DateTime @default(now())
+
+  @@index([district, createdAt])
 }

@@ -58,8 +58,18 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <main className="w-full pt-28 pb-space-3xl min-h-screen bg-surface flex items-center justify-center px-4">
+    <main className="jg-page flex min-h-[100dvh] items-center justify-center bg-surface pb-space-3xl">
       <div className="bg-surface-container-lowest w-full max-w-md rounded-2xl p-space-xl shadow-lg border border-outline-variant/30 flex flex-col gap-space-md">
+        {/* Citizen-First Access Distinction */}
+        <div className="flex flex-col sm:flex-row gap-2 mb-2">
+          <div className="flex-1 rounded-t-xl bg-primary/10 border border-primary/20 p-2 text-xs text-primary font-medium">
+            For Citizens: Instant Access<br/>No account or sign-up required to access emergency assistance, report an incident or view public safety information.
+          </div>
+          <div className="flex-1 rounded-t-xl bg-secondary/10 border border-secondary/20 p-2 text-xs text-secondary font-medium">
+            For Officials & Response Teams<br/>Sign in with your assigned credentials to access your role-specific operational dashboard.
+          </div>
+        </div>
+
         <div className="text-center">
           <img
             alt="JeevanGrid Logo"
@@ -80,7 +90,7 @@ export const LoginPage: React.FC = () => {
         <button
           onClick={() => handleFastDemoLogin('CITIZEN')}
           disabled={loading}
-          className="w-full py-2.5 rounded-xl bg-primary text-on-primary font-bold text-xs hover:bg-primary-container transition-all flex items-center justify-center gap-1.5 shadow-xs"
+          className="flex w-full min-h-[44px] items-center justify-center gap-1.5 rounded-xl bg-primary py-3 text-xs font-bold text-on-primary shadow-sm transition-all hover:bg-primary-container"
         >
           <span className="material-symbols-outlined text-[18px]">verified_user</span>
           <span>Continue as Citizen (Instant Access)</span>
@@ -131,37 +141,33 @@ export const LoginPage: React.FC = () => {
           <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant block mb-1.5 text-center">
             Demo Evaluation Accounts (Password: Password123!)
           </span>
-          <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-            <button
-              onClick={() => handleFastDemoLogin('DISTRICT_OFFICER')}
-              className="p-1.5 rounded bg-surface-container-low hover:bg-surface-container text-left border border-outline-variant/20 truncate"
-            >
-              🏛️ District Officer
-            </button>
-            <button
-              onClick={() => handleFastDemoLogin('FIELD_RESPONDER')}
-              className="p-1.5 rounded bg-surface-container-low hover:bg-surface-container text-left border border-outline-variant/20 truncate"
-            >
-              🚨 Field Responder
-            </button>
-            <button
-              onClick={() => handleFastDemoLogin('HEALTH_OFFICER')}
-              className="p-1.5 rounded bg-surface-container-low hover:bg-surface-container text-left border border-outline-variant/20 truncate"
-            >
-              🏥 Health Officer
-            </button>
-            <button
-              onClick={() => handleFastDemoLogin('STATE_EOC')}
-              className="p-1.5 rounded bg-surface-container-low hover:bg-surface-container text-left border border-outline-variant/20 truncate"
-            >
-              🗺️ State EOC
-            </button>
+          <div className="grid grid-cols-1 gap-2 xs:grid-cols-2">
+            {(
+              [
+                ['DISTRICT_OFFICER', 'District Officer'],
+                ['FIELD_RESPONDER', 'Field Responder'],
+                ['HEALTH_OFFICER', 'Health Officer'],
+                ['STATE_EOC', 'State EOC'],
+              ] as const
+            ).map(([role, label]) => (
+              <button
+                key={role}
+                type="button"
+                onClick={() => handleFastDemoLogin(role)}
+                className="min-h-[44px] rounded-xl border border-outline-variant/30 bg-surface-container-low px-3 py-2 text-left text-xs font-semibold text-on-surface transition-colors hover:bg-surface-container"
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="text-center text-xs text-on-surface-variant pt-1">
+        <div className="pt-1 text-center text-xs text-on-surface-variant">
           Don't have an account?{' '}
-          <Link to="/register" className="font-bold text-primary hover:underline">
+          <Link
+            to="/register"
+            className="inline-flex min-h-[44px] items-center font-bold text-primary hover:underline"
+          >
             Register as Citizen
           </Link>
         </div>

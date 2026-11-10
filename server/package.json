@@ -11,7 +11,8 @@
     "prisma:push": "prisma db push",
     "seed": "tsx prisma/seed.ts",
     "test:alerts": "tsx --test src/services/alerts/__tests__/alerts.test.ts",
-    "test:health": "tsx --test src/services/health/__tests__/health.test.ts"
+    "test:health": "tsx --test src/services/health/__tests__/health.test.ts",
+    "test:incidents": "tsx --test src/services/incidents/__tests__/incidentLifecycle.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

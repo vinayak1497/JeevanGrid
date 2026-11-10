@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
@@ -30,11 +30,11 @@ export const VolunteerDashboard: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="pt-28 pb-20 text-center text-xs text-on-surface-variant">Loading Community Volunteer Hub...</div>;
+    return <div className="jg-page flex min-h-[70dvh] items-center justify-center text-center text-xs text-on-surface-variant">Loading Community Volunteer Hub...</div>;
   }
 
   return (
-    <main className="w-full pt-20 pb-space-3xl min-h-screen bg-surface">
+    <main className="jg-page min-h-[100dvh] bg-surface pb-space-3xl">
       <section className="bg-surface-container-low py-space-lg border-b border-outline-variant/30">
         <div className="max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop flex flex-col md:flex-row md:items-center justify-between gap-space-md">
           <div>
@@ -64,9 +64,12 @@ export const VolunteerDashboard: React.FC = () => {
             <span className="text-[11px] font-bold text-on-surface-variant uppercase">Civic Hours Contributed</span>
             <p className="font-display-lg text-2xl font-bold text-secondary mt-1">{data?.hoursContributed || 38} hrs</p>
           </div>
-          <div className="p-space-md rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs">
-            <span className="text-[11px] font-bold text-on-surface-variant uppercase">Emergency Readiness</span>
-            <p className="font-display-lg text-2xl font-bold text-surface-tint mt-1">Level 2 Certified</p>
+          <div className="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-space-md shadow-xs">
+            <span className="text-[11px] font-bold uppercase text-on-surface-variant">
+              Emergency Readiness
+            </span>
+            <p className="mt-1 font-display-lg text-xl font-bold text-surface-tint">Level 2</p>
+            <p className="text-[11px] font-semibold text-on-surface-variant">Certified</p>
           </div>
         </div>
 
@@ -98,7 +101,7 @@ export const VolunteerDashboard: React.FC = () => {
                 {task.status !== 'COMPLETED' ? (
                   <button
                     onClick={() => handleCompleteTask(task.id)}
-                    className="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-bold hover:bg-primary-container transition-all self-start sm:self-auto shrink-0 shadow-xs"
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl px-4 py-2 bg-primary text-on-primary text-xs font-bold hover:bg-primary-container transition-all self-start sm:self-auto shrink-0 shadow-xs"
                   >
                     Mark Verified &amp; Done
                   </button>

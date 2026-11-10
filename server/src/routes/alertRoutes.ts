@@ -9,6 +9,7 @@ import {
   getDistrictOfficialAlerts,
   getOfficialAlertById,
   stageOfficialAlert,
+  listDemoScenarioAlerts,
 } from '../controllers/officialAlertsController';
 import { authenticateToken, requireRole } from '../middleware/authMiddleware';
 
@@ -32,6 +33,8 @@ router.post(
 router.get('/sources', getAlertSources);
 // JeevanGrid's own risk intelligence (explicitly NOT an official warning).
 router.get('/intelligence', getIntelligenceInfo);
+// Clearly labelled simulation records for acknowledgement training only.
+router.get('/demo-scenarios', listDemoScenarioAlerts);
 // Manual ingestion trigger (EOC / debugging). Authenticated EOC roles only so
 // anonymous clients cannot hammer government feeds or force backfills.
 // The backend worker polls on a schedule regardless of browser activity.

@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, Tooltip, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, Polygon, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { BASEMAPS, type BasemapKey } from '../map/mapStyles';
 
-interface MapMarker {
+export interface MapMarker {
   id: string;
   lat: number;
   lng: number;
@@ -32,12 +32,23 @@ export interface MapFlowLine {
   label: string;
 }
 
+export interface MapPolygon {
+  id: string;
+  positions: Array<[number, number]>;
+  color: string;
+  fillOpacity?: number;
+  weight?: number;
+  dashArray?: string;
+  label: string;
+}
+
 interface LeafletMapProps {
   center?: [number, number];
   zoom?: number;
   markers?: MapMarker[];
   riskZones?: MapRiskZone[];
   flowLines?: MapFlowLine[];
+  polygons?: MapPolygon[];
   basemap?: BasemapKey;
   radarUrl?: string | null;
   radarAttribution?: string;
@@ -59,7 +70,7 @@ const CenterController: React.FC<{ center: [number, number]; zoom: number; reset
 };
 
 const cornerBtn =
-  'w-9 h-9 rounded-lg bg-white text-on-surface border border-outline-variant/50 shadow-md flex items-center justify-center hover:bg-surface-container-low transition-colors';
+  'h-11 w-11 rounded-xl bg-white text-on-surface border border-outline-variant/50 shadow-md flex items-center justify-center hover:bg-surface-container-low transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50';
 
 const LocateButton: React.FC<{ onFound?: (lat: number, lng: number) => void; onError?: (m: string) => void }> = ({
   onFound,
@@ -149,6 +160,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   markers = [],
   riskZones = [],
   flowLines = [],
+  polygons = [],
   basemap = 'standard',
   radarUrl = null,
   radarAttribution = 'Precipitation radar &copy; <a href="https://www.rainviewer.com/">RainViewer</a>',
@@ -234,6 +246,23 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         {radarUrl && (
           <TileLayer url={radarUrl} attribution={radarAttribution} opacity={0.55} zIndex={5} />
         )}
+        {polygons.map((polygon) => (
+          <Polygon
+            key={polygon.id}
+            positions={polygon.positions}
+            pathOptions={{
+              color: polygon.color,
+              fillColor: polygon.color,
+              fillOpacity: polygon.fillOpacity ?? 0.18,
+              weight: polygon.weight ?? 2,
+              ...(polygon.dashArray ? { dashArray: polygon.dashArray } : {}),
+            }}
+          >
+            <Tooltip direction="center" opacity={1}>
+              <span className="text-[11px] font-bold">{polygon.label}</span>
+            </Tooltip>
+          </Polygon>
+        ))}
         {flowLines.map((line) => (
           <Polyline
             key={line.id}

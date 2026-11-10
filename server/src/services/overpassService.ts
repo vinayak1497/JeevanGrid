@@ -18,6 +18,14 @@ export interface LiveFacility {
 const cache = new Map<string, { data: LiveFacility[]; ts: number }>();
 const TTL = 30 * 60 * 1000;
 
+export interface InfraCountResult {
+  hospitals: number | null;
+  schools: number | null;
+  roads: number | null;
+  source: 'overpass' | 'unavailable';
+  warnings: string[];
+}
+
 const FALLBACK_ENDPOINTS = [
   'https://overpass.kumi.systems/api/interpreter',
   'https://overpass-api.de/api/interpreter',
@@ -147,6 +155,78 @@ export class OverpassService {
     }
     return { facilities: [], source: 'none' };
   }
+
+  /**
+   * Counts hospitals, schools and major roads inside an Overpass poly filter.
+   * Returns null for a category when Overpass is unavailable — callers must
+   * label the gap instead of substituting invented numbers.
+   */
+  public async countFeaturesInPolygon(poly: string): Promise<InfraCountResult> {
+    if (!poly || poly.length < 20) {
+      return { hospitals: null, schools: null, roads: null, source: 'unavailable', warnings: ['Invalid polygon filter.'] };
+    }
+    const cacheKey = `counts:${poly}`;
+    const cached = countCache.get(cacheKey);
+    if (cached && Date.now() - cached.ts < 60 * 60 * 1000) return cached.value;
+
+    const queries: Array<[keyof Pick<InfraCountResult, 'hospitals' | 'schools' | 'roads'>, string]> = [
+      ['hospitals', `[out:json][timeout:20];nwr(poly:"${poly}")[amenity~"^(hospital|clinic|doctors)$"];out count;`],
+      ['schools', `[out:json][timeout:20];nwr(poly:"${poly}")[amenity~"^(school|college|university|kindergarten)$"];out count;`],
+      ['roads', `[out:json][timeout:20];way(poly:"${poly}")[highway~"^(motorway|trunk|primary|secondary)$"];out count;`],
+    ];
+
+    const results = await Promise.all(
+      queries.map(async ([key, query]) => {
+        for (const endpoint of resolveEndpoints()) {
+          try {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 18_000);
+            try {
+              const res = await fetch(endpoint, {
+                method: 'POST',
+                signal: ctrl.signal,
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'User-Agent': 'JeevanGrid-DataEngine/1.0 (civic-safety-info)',
+                },
+                body: new URLSearchParams({ data: query }),
+              });
+              if (!res.ok) throw new Error(`Overpass HTTP ${res.status}`);
+              const raw: any = await res.json();
+              const countEl = (raw.elements || []).find((el: any) => el?.type === 'count');
+              const total = Number(countEl?.tags?.total ?? 0);
+              if (!Number.isFinite(total)) throw new Error('Overpass count missing');
+              return [key, total] as const;
+            } finally {
+              clearTimeout(timer);
+            }
+          } catch (e) {
+            console.warn(`Overpass count (${endpoint}) unavailable:`, (e as Error).message);
+          }
+        }
+        return [key, null] as const;
+      })
+    );
+
+    const value = {
+      hospitals: null as number | null,
+      schools: null as number | null,
+      roads: null as number | null,
+      source: 'unavailable' as 'overpass' | 'unavailable',
+      warnings: [] as string[],
+    };
+    for (const [key, count] of results) {
+      value[key] = count;
+      if (count === null) value.warnings.push(`OpenStreetMap ${key} count unavailable.`);
+    }
+    if (results.some(([, count]) => count !== null)) value.source = 'overpass';
+    if (value.source === 'overpass') {
+      countCache.set(cacheKey, { value, ts: Date.now() });
+    }
+    return value;
+  }
 }
+
+const countCache = new Map<string, { value: InfraCountResult; ts: number }>();
 
 export const overpassService = new OverpassService();

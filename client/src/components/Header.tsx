@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useAuth, User } from '../context/AuthContext';
 import { useLanguage } from '../i18n/LanguageContext';
 import { LanguageSelector } from './LanguageSelector';
@@ -8,13 +9,17 @@ interface HeaderProps {
   onOpenEmergencyModal: () => void;
 }
 
+const NAV_KEYS = ['nav.home', 'nav.disasters', 'nav.guides', 'nav.resources'] as const;
+const NAV_PATHS = ['/', '/alerts', '/guides', '/resources'] as const;
+
 export const Header: React.FC<HeaderProps> = ({ onOpenEmergencyModal }) => {
   const { user, logout, loginAsDemoRole } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
-  const [demoMenuOpen, setDemoMenuOpen] = useState(false);
+  const reduce = useReducedMotion();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const getDashboardRoute = (role: User['role']) => {
     switch (role) {
@@ -36,221 +41,364 @@ export const Header: React.FC<HeaderProps> = ({ onOpenEmergencyModal }) => {
   const handleRoleSwitch = async (role: User['role']) => {
     try {
       const u = await loginAsDemoRole(role);
-      setDemoMenuOpen(false);
       const target = getDashboardRoute(u.role);
+      setMobileNavOpen(false);
       navigate(target);
     } catch (e) {
       console.error('Failed to switch demo role:', e);
     }
   };
 
-  const navLinks = [
-    { label: t('nav.home'), path: '/' },
-    { label: t('nav.disasters'), path: '/alerts' },
-    { label: t('nav.guides'), path: '/guides' },
-    { label: t('nav.resources'), path: '/resources' },
-    { label: t('nav.assistant'), path: '/assistant' },
-  ];
+  // Any navigation closes the drawers.
+  useEffect(() => {
+    setMobileNavOpen(false);
+    setUserMenuOpen(false);
+  }, [location.pathname]);
+
+  // Lock the page behind the mobile drawer.
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileNavOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [mobileNavOpen]);
+
+  const navLinks = NAV_KEYS.map((key, index) => ({ label: t(key), path: NAV_PATHS[index] }));
+
+  const isActive = (path: string) =>
+    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
+
+  const closeDrawers = useCallback(() => {
+    setMobileNavOpen(false);
+    setUserMenuOpen(false);
+  }, []);
 
   return (
-    <header className="fixed top-4 left-0 right-0 w-full z-50 px-margin-mobile lg:px-margin-desktop pointer-events-none">
-      <div className="max-w-container-max mx-auto pointer-events-auto bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-white/40 transition-all">
-      {/* Top Demo Bar for Hackathon Judges */}
-      <div className="rounded-t-2xl bg-surface-container-high/80 border-b border-outline-variant/30 px-margin-mobile lg:px-margin-desktop py-1 text-xs flex items-center justify-between text-on-surface-variant">
-        <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-surface-tint"></span>
-          <span className="font-semibold text-primary">{t('nav.demoMode')}</span>
-          <span>{t('nav.loggedInAs')} <strong className="text-on-surface uppercase">{user ? user.role.replace('_', ' ') : t('nav.guest')}</strong></span>
-        </div>
-        <div className="relative">
-          <button
-            onClick={() => setDemoMenuOpen(!demoMenuOpen)}
-            className="inline-flex items-center gap-1 font-semibold text-primary hover:text-primary-container px-2 py-0.5 rounded bg-surface-container-lowest shadow-xs"
-          >
-            <span>{t('nav.switchRole')}</span>
-            <span className="material-symbols-outlined text-[14px]">expand_more</span>
-          </button>
-          {demoMenuOpen && (
-            <div className="absolute right-0 top-full mt-1 w-56 bg-surface-container-lowest rounded-lg shadow-lg border border-outline-variant/40 py-1 z-50">
-              <div className="px-3 py-1 text-[10px] uppercase font-bold text-on-surface-variant border-b border-outline-variant/20">
-                {t('nav.selectRole')}
-              </div>
-              <button
-                onClick={() => handleRoleSwitch('CITIZEN')}
-                className="w-full text-left px-3 py-1.5 hover:bg-surface-container-low text-xs flex items-center justify-between"
-              >
-                <span>Citizen</span>
-                {user?.role === 'CITIZEN' && <span className="text-surface-tint">✓</span>}
-              </button>
-              <button
-                onClick={() => handleRoleSwitch('DISTRICT_OFFICER')}
-                className="w-full text-left px-3 py-1.5 hover:bg-surface-container-low text-xs flex items-center justify-between"
-              >
-                <span>District Officer (DDMA)</span>
-                {user?.role === 'DISTRICT_OFFICER' && <span className="text-surface-tint">✓</span>}
-              </button>
-              <button
-                onClick={() => handleRoleSwitch('FIELD_RESPONDER')}
-                className="w-full text-left px-3 py-1.5 hover:bg-surface-container-low text-xs flex items-center justify-between"
-              >
-                <span>Field Responder (NDRF)</span>
-                {user?.role === 'FIELD_RESPONDER' && <span className="text-surface-tint">✓</span>}
-              </button>
-              <button
-                onClick={() => handleRoleSwitch('HEALTH_OFFICER')}
-                className="w-full text-left px-3 py-1.5 hover:bg-surface-container-low text-xs flex items-center justify-between"
-              >
-                <span>Health Officer</span>
-                {user?.role === 'HEALTH_OFFICER' && <span className="text-surface-tint">✓</span>}
-              </button>
-              <button
-                onClick={() => handleRoleSwitch('STATE_EOC')}
-                className="w-full text-left px-3 py-1.5 hover:bg-surface-container-low text-xs flex items-center justify-between"
-              >
-                <span>State EOC Officer</span>
-                {user?.role === 'STATE_EOC' && <span className="text-surface-tint">✓</span>}
-              </button>
-              <button
-                onClick={() => handleRoleSwitch('COMMUNITY_VOLUNTEER')}
-                className="w-full text-left px-3 py-1.5 hover:bg-surface-container-low text-xs flex items-center justify-between"
-              >
-                <span>Community Volunteer</span>
-                {user?.role === 'COMMUNITY_VOLUNTEER' && <span className="text-surface-tint">✓</span>}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Main Navbar */}
-      <div className="rounded-b-2xl h-16 max-w-container-max mx-auto px-margin-mobile lg:px-margin-desktop flex items-center justify-between gap-space-md">
-        {/* Brand Logo & Name */}
-        <Link to="/" className="flex items-center gap-space-sm group">
-          <img
-            alt="JeevanGrid Brand Logo"
-            className="h-8 w-auto object-contain"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0_F511bDxbm-42RdE_16-7A2-vX8jkKf-9E5obOVePqeyCQmsFGPDNiWB5qZiCCjQ75JK9ZB3LkOYwkApxB1iDJZ0UGohHLt5eexSUx9gkKhgcris0y0hj44TCKqwI3AeoHLUaTjZG7QqcD-xlJOWoyNPvBS1zT2gGfCv-MYhfpmCvhp1p8QUeGiENfXREL-5pplKGHuTUAe3tfd8jvp9WQEEn8cOfhNjVdlCk9YcEKypaIqGTrMx"
-          />
-          <div className="flex flex-col">
-              <span className="font-headline-sm text-headline-sm text-primary leading-tight tracking-tight font-bold group-hover:text-primary-container transition-colors">
-                JeevanGrid
+    <>
+      <header className="pointer-events-none fixed inset-x-0 top-0 z-[90]">
+        <div className="jg-header-bar pointer-events-auto jg-glass border-b border-outline-variant/35 shadow-sm">
+          <div className="jg-header-inner jg-container flex items-center justify-between gap-2 px-[max(1rem,var(--jg-safe-left))] pr-[max(1rem,var(--jg-safe-right))]">
+            {/* Brand */}
+            <Link to="/" className="group flex min-h-[44px] min-w-0 shrink-0 items-center gap-2.5">
+              <span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary text-on-primary shadow-sm transition-transform duration-300 ease-out-expo group-hover:scale-105">
+                <span
+                  className="material-symbols-outlined text-[20px]"
+                  aria-hidden="true"
+                  style={{ fontVariationSettings: "'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24" }}
+                >
+                  shield
+                </span>
+                <span
+                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_60%)]"
+                  aria-hidden="true"
+                />
               </span>
-              <span className="font-label-sm text-[11px] text-on-surface-variant hidden sm:inline-block">
-                {t('nav.tagline')}
+              <span className="flex min-w-0 flex-col leading-none">
+                <span className="truncate font-headline-sm text-headline-sm font-bold tracking-tight text-primary">
+                  JeevanGrid
+                </span>
+                <span className="mt-0.5 hidden truncate text-[10px] font-medium text-on-surface-variant sm:block">
+                  {t('nav.tagline')}
+                </span>
               </span>
-          </div>
-        </Link>
-
-        {/* Navigation Links */}
-        <nav className="hidden xl:flex items-center gap-space-lg">
-          {navLinks.map((link) => {
-            const isActive = location.pathname === link.path;
-            return (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`font-label-lg text-label-lg transition-colors ${
-                  isActive ? 'text-primary font-bold' : 'text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-          {user && user.role !== 'CITIZEN' && (
-            <Link
-              to={getDashboardRoute(user.role)}
-              className="font-label-lg text-label-lg text-secondary font-bold hover:text-on-secondary-container transition-colors flex items-center gap-1"
-            >
-              <span className="material-symbols-outlined text-[18px]">dashboard</span>
-              <span>{t('nav.opsDashboard')}</span>
             </Link>
-          )}
-        </nav>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-space-xs sm:gap-space-sm">
-          {/* Global language selector — citizen selects once, whole app follows */}
-          <LanguageSelector />
-
-          {/* Emergency Help Action Button */}
-          <button
-            onClick={onOpenEmergencyModal}
-            aria-label={t('nav.emergencyHelp')}
-            className="inline-flex items-center justify-center px-space-md py-1.5 rounded-full border border-error text-error hover:bg-error-container hover:text-on-error-container transition-all font-label-md text-label-md font-semibold"
-          >
-            <span className="material-symbols-outlined mr-1 text-[16px]">e911_emergency</span>
-            <span className="hidden md:inline">{t('nav.emergencyHelp')}</span>
-          </button>
-
-          {/* User Profile or Login */}
-          {user ? (
-            <div className="relative">
-              <button
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors"
-              >
-                <div className="flex flex-col text-right hidden md:flex">
-                  <span className="text-xs font-semibold text-on-surface leading-tight">{user.name}</span>
-                  <span className="text-[10px] text-on-surface-variant uppercase">{user.role.replace('_', ' ')}</span>
-                </div>
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary">
-                  <span className="material-symbols-outlined text-[18px]">person</span>
-                </div>
-              </button>
-
-              {userMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant/30 py-2 z-50">
-                  <div className="px-4 py-2 border-b border-outline-variant/20">
-                    <p className="text-xs font-bold text-on-surface">{user.name}</p>
-                    <p className="text-[11px] text-on-surface-variant truncate">{user.email}</p>
-                    <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-surface-container-high text-[10px] font-semibold text-primary">
-                      {user.role}
-                    </span>
-                  </div>
-                  {user.role !== 'CITIZEN' && (
-                    <Link
-                      to={getDashboardRoute(user.role)}
-                      onClick={() => setUserMenuOpen(false)}
-                      className="w-full text-left px-4 py-2 hover:bg-surface-container-low text-xs text-on-surface flex items-center gap-2"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">dashboard</span>
-                      <span>Go to Ops Dashboard</span>
-                    </Link>
-                  )}
+            {/* Desktop navigation */}
+            <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
+              {navLinks.map((link) => {
+                const active = isActive(link.path);
+                return (
                   <Link
-                    to="/report-emergency"
-                    onClick={() => setUserMenuOpen(false)}
-                    className="w-full text-left px-4 py-2 hover:bg-surface-container-low text-xs text-on-surface flex items-center gap-2"
+                    key={link.path}
+                    to={link.path}
+                    aria-current={active ? 'page' : undefined}
+                    className={`relative inline-flex min-h-[44px] items-center rounded-lg px-3 py-2 text-label-lg transition-colors duration-200 ${
+                      active ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'
+                    }`}
                   >
-                    <span className="material-symbols-outlined text-[16px]">report_problem</span>
-                    <span>Submit Incident Report</span>
+                    {active ? (
+                      <motion.span
+                        layoutId="nav-active"
+                        className="absolute inset-x-2 -bottom-0.5 h-0.5 rounded-full bg-primary"
+                        transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                      />
+                    ) : null}
+                    {link.label}
                   </Link>
+                );
+              })}
+              {user && user.role !== 'CITIZEN' ? (
+                <Link
+                  to={getDashboardRoute(user.role)}
+                  className="ml-1 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg bg-primary-container px-3 py-2 text-label-lg font-semibold text-on-primary transition-colors hover:bg-primary"
+                >
+                  <span className="material-symbols-outlined text-[17px]" aria-hidden="true">
+                    dashboard
+                  </span>
+                  {t('nav.opsDashboard')}
+                </Link>
+              ) : null}
+            </nav>
+
+            {/* Actions */}
+            <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+              <LanguageSelector />
+
+              <button
+                type="button"
+                onClick={onOpenEmergencyModal}
+                aria-label={t('nav.emergencyHelp')}
+                className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-error/45 bg-error-container/40 px-3 text-label-md font-bold text-error transition-all duration-200 hover:bg-error hover:text-on-error active:scale-95 sm:px-4"
+              >
+                <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                  e911_emergency
+                </span>
+                <span className="hidden xl:inline">{t('nav.emergencyHelp')}</span>
+              </button>
+
+              {user ? (
+                <div className="relative">
                   <button
-                    onClick={() => {
-                      setUserMenuOpen(false);
-                      logout();
-                      navigate('/');
-                    }}
-                    className="w-full text-left px-4 py-2 hover:bg-error-container hover:text-on-error-container text-xs text-error flex items-center gap-2"
+                    type="button"
+                    onClick={() => setUserMenuOpen((v) => !v)}
+                    aria-expanded={userMenuOpen}
+                    aria-haspopup="menu"
+                    className="flex h-11 items-center gap-2 rounded-xl bg-surface-container pl-1 pr-2 transition-colors hover:bg-surface-container-high"
                   >
-                    <span className="material-symbols-outlined text-[16px]">logout</span>
-                    <span>Sign Out</span>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-on-primary">
+                      <span className="material-symbols-outlined text-[17px]" aria-hidden="true">
+                        person
+                      </span>
+                    </span>
+                    <span className="hidden min-w-0 flex-col text-right leading-none xl:flex">
+                      <span className="max-w-[9rem] truncate text-xs font-semibold text-on-surface">
+                        {user.name}
+                      </span>
+                      <span className="mt-0.5 truncate text-[10px] uppercase text-on-surface-variant">
+                        {user.role.replace('_', ' ')}
+                      </span>
+                    </span>
                   </button>
+
+                  <AnimatePresence>
+                    {userMenuOpen ? (
+                      <motion.div
+                        role="menu"
+                        initial={reduce ? false : { opacity: 0, y: -6, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={reduce ? undefined : { opacity: 0, y: -6, scale: 0.97 }}
+                        transition={{ duration: reduce ? 0 : 0.18, ease: [0.16, 1, 0.3, 1] }}
+                        className="absolute right-0 top-[calc(100%+0.5rem)] z-[110] w-[min(16rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-outline-variant/40 bg-surface-container-lowest py-1.5 shadow-xl"
+                      >
+                        <div className="border-b border-outline-variant/25 px-4 py-2.5">
+                          <p className="truncate text-xs font-bold text-on-surface">{user.name}</p>
+                          <p className="truncate text-[11px] text-on-surface-variant">{user.email}</p>
+                          <span className="mt-1.5 inline-block rounded-full bg-surface-container-high px-2 py-0.5 text-[10px] font-semibold text-primary">
+                            {user.role.replace('_', ' ')}
+                          </span>
+                        </div>
+                        {user.role !== 'CITIZEN' ? (
+                          <Link
+                            to={getDashboardRoute(user.role)}
+                            onClick={closeDrawers}
+                            role="menuitem"
+                            className="flex min-h-[44px] w-full items-center gap-2.5 px-4 py-2.5 text-xs text-on-surface transition-colors hover:bg-surface-container"
+                          >
+                            <span className="material-symbols-outlined text-[17px]" aria-hidden="true">
+                              dashboard
+                            </span>
+                            Go to Ops Dashboard
+                          </Link>
+                        ) : null}
+                        <Link
+                          to="/report-emergency"
+                          onClick={closeDrawers}
+                          role="menuitem"
+                          className="flex min-h-[44px] w-full items-center gap-2.5 px-4 py-2.5 text-xs text-on-surface transition-colors hover:bg-surface-container"
+                        >
+                          <span className="material-symbols-outlined text-[17px]" aria-hidden="true">
+                            report_problem
+                          </span>
+                          Submit Incident Report
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            closeDrawers();
+                            logout();
+                            navigate('/');
+                          }}
+                          role="menuitem"
+                          className="flex min-h-[44px] w-full items-center gap-2.5 px-4 py-2.5 text-xs text-error transition-colors hover:bg-error-container"
+                        >
+                          <span className="material-symbols-outlined text-[17px]" aria-hidden="true">
+                            logout
+                          </span>
+                          Sign Out
+                        </button>
+                      </motion.div>
+                    ) : null}
+                  </AnimatePresence>
                 </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  className="inline-flex h-11 min-w-[2.75rem] items-center justify-center gap-1.5 rounded-xl bg-primary px-3 text-label-md font-semibold text-on-primary shadow-sm transition-all duration-200 hover:bg-primary-container active:scale-95 sm:px-4"
+                >
+                  <span className="material-symbols-outlined text-[17px]" aria-hidden="true">
+                    person
+                  </span>
+                  <span className="hidden sm:inline">Login</span>
+                </button>
               )}
+
+              {/* Mobile menu trigger */}
+              <button
+                type="button"
+                onClick={() => setMobileNavOpen(true)}
+                aria-label="Open navigation"
+                aria-expanded={mobileNavOpen}
+                className="jg-icon-button lg:hidden"
+              >
+                <span className="material-symbols-outlined text-[22px]" aria-hidden="true">
+                  menu
+                </span>
+              </button>
             </div>
-          ) : (
-            <Link
-              to="/login"
-              className="inline-flex items-center justify-center px-space-md py-1.5 rounded-lg bg-primary-container text-on-primary hover:bg-primary transition-all font-label-md text-label-md shadow-xs font-medium"
-            >
-              {t('nav.login')}
-            </Link>
-          )}
+          </div>
         </div>
-      </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Mobile navigation drawer */}
+      <AnimatePresence>
+        {mobileNavOpen ? (
+          <div className="fixed inset-0 z-[130] lg:hidden">
+            <motion.div
+              className="absolute inset-0 bg-on-surface/45 backdrop-blur-[2px]"
+              initial={reduce ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={reduce ? undefined : { opacity: 0 }}
+              transition={{ duration: reduce ? 0 : 0.22 }}
+              onClick={() => setMobileNavOpen(false)}
+              aria-hidden="true"
+            />
+            <motion.nav
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigation"
+              initial={reduce ? false : { x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={reduce ? undefined : { x: '-100%' }}
+              transition={{ type: 'spring', stiffness: 320, damping: 34 }}
+              className="absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col bg-surface-container-lowest shadow-2xl"
+            >
+              <div className="flex items-center justify-between border-b border-outline-variant/30 px-4 py-3">
+                <span className="text-sm font-bold text-on-surface">Menu</span>
+                <button
+                  type="button"
+                  onClick={() => setMobileNavOpen(false)}
+                  aria-label="Close navigation"
+                  className="jg-icon-button"
+                >
+                  <span className="material-symbols-outlined text-[21px]" aria-hidden="true">
+                    close
+                  </span>
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-3">
+                <div className="flex flex-col gap-1">
+                  {navLinks.map((link) => {
+                    const active = isActive(link.path);
+                    return (
+                      <Link
+                        key={link.path}
+                        to={link.path}
+                        className={`flex min-h-[48px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors ${
+                          active
+                            ? 'bg-primary-container text-on-primary'
+                            : 'text-on-surface hover:bg-surface-container'
+                        }`}
+                      >
+                        <span
+                          className={`h-2 w-2 shrink-0 rounded-full ${
+                            active ? 'bg-on-primary' : 'bg-outline-variant'
+                          }`}
+                          aria-hidden="true"
+                        />
+                        <span className="truncate">{link.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                {user && user.role !== 'CITIZEN' ? (
+                  <Link
+                    to={getDashboardRoute(user.role)}
+                    className="mt-2 flex min-h-[48px] items-center gap-3 rounded-xl border border-outline-variant/40 bg-surface-container px-3 text-sm font-semibold text-primary"
+                  >
+                    <span className="material-symbols-outlined text-[19px]" aria-hidden="true">
+                      dashboard
+                    </span>
+                    {t('nav.opsDashboard')}
+                  </Link>
+                ) : null}
+
+                <div className="mt-4 border-t border-outline-variant/30 pt-3">
+                  <p className="jg-eyebrow px-3 pb-2 text-on-surface-variant">Switch role</p>
+                  <div className="flex flex-col gap-1">
+                    {(
+                      [
+                        'DISTRICT_OFFICER',
+                        'STATE_EOC',
+                        'FIELD_RESPONDER',
+                        'HEALTH_OFFICER',
+                        'COMMUNITY_VOLUNTEER',
+                      ] as User['role'][]
+                    ).map((role) => (
+                      <button
+                        key={role}
+                        type="button"
+                        onClick={() => void handleRoleSwitch(role)}
+                        className="flex min-h-[44px] items-center gap-3 rounded-xl px-3 text-left text-xs font-semibold text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+                      >
+                        <span className="material-symbols-outlined text-[17px]" aria-hidden="true">
+                          switch_account
+                        </span>
+                        {role.replace('_', ' ')}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-outline-variant/30 px-3 py-3 pb-[calc(0.75rem+var(--jg-safe-bottom))]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileNavOpen(false);
+                    onOpenEmergencyModal();
+                  }}
+                  className="jg-button-danger w-full"
+                >
+                  <span className="material-symbols-outlined text-[19px]" aria-hidden="true">
+                    e911_emergency
+                  </span>
+                  {t('nav.emergencyHelp')}
+                </button>
+              </div>
+            </motion.nav>
+          </div>
+        ) : null}
+      </AnimatePresence>
+    </>
   );
 };

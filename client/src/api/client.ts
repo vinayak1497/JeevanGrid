@@ -41,8 +41,27 @@ export async function apiFetch<T = any>(endpoint: string, options: RequestInit =
     } catch {
       // no json response
     }
-    throw new Error(errorMessage);
+    const error = new Error(errorMessage) as Error & { status?: number };
+    error.status = response.status;
+    throw error;
   }
 
-  return response.json();
+  // Offline service worker metadata: users must know when data is cached.
+  try {
+    const cachedAt = response.headers.get('X-JG-Cached-At');
+    if (cachedAt) localStorage.setItem('jeevangrid.lastDataAt', cachedAt);
+    if (response.headers.get('X-JG-Cache-Hit')) {
+      localStorage.setItem('jeevangrid.cachedResponse', 'true');
+    } else {
+      localStorage.removeItem('jeevangrid.cachedResponse');
+    }
+  } catch {
+    /* storage unavailable */
+  }
+
+  try {
+    return await response.json();
+  } catch {
+    return {} as T;
+  }
 }

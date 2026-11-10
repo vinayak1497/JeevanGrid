@@ -3,38 +3,84 @@ import { prisma } from '../utils/prisma';
 import { AuthRequest } from '../middleware/authMiddleware';
 import { queryOfficialAlerts } from '../services/alerts/officialAlertQuery';
 import { getHealthAssessment } from '../services/health/healthAssessmentService';
+import { getImpactSummary, listImpactAssessments } from '../services/impact/impactAssessmentService';
+import { getCommunityIntelligence, shapeReportForViewer } from '../services/community/communityIntelligenceService';
+import { getPlaybookSummary, listPlaybooks } from '../services/playbooks/playbookService';
+import { getAcknowledgementSummary } from '../services/alerts/acknowledgementService';
+import { listSatelliteLayers } from '../services/satellite/satelliteLayerService';
+
+async function safe<T>(promise: Promise<T>, fallback: T, label: string): Promise<T> {
+  try {
+    return await promise;
+  } catch (e) {
+    console.warn(`[dashboard] ${label} unavailable:`, (e as Error).message.slice(0, 160));
+    return fallback;
+  }
+}
 
 export async function getDistrictDashboard(req: AuthRequest, res: Response): Promise<void> {
   try {
-    const district = req.user?.district || 'Mumbai Suburban';
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required.' });
+      return;
+    }
+    const district = req.user.district || 'Mumbai Suburban';
+    const state = req.user.state || 'Maharashtra';
+    const scope = { district, state };
 
     const incidents = await prisma.incident.findMany({
+      where: scope,
       orderBy: { createdAt: 'desc' },
+      take: 300,
       include: {
         report: true,
-        assignedTo: { select: { id: true, name: true, phone: true } },
-        fieldReports: true,
+        assignedTo: { select: { id: true, name: true, phone: true, role: true, district: true } },
+        assignedBy: { select: { id: true, name: true, role: true } },
+        verifiedBy: { select: { id: true, name: true, role: true } },
+        resolutionReviewedBy: { select: { id: true, name: true, role: true } },
+        fieldReports: {
+          include: { responder: { select: { id: true, name: true, role: true } } },
+          orderBy: { submittedAt: 'desc' as const },
+        },
+        events: { orderBy: { createdAt: 'asc' as const } },
       },
     });
 
     const totalIncidents = incidents.length;
     const newIncidents = incidents.filter((i) => i.status === 'NEW').length;
-    const assignedIncidents = incidents.filter((i) => i.status === 'ASSIGNED' || i.status === 'IN_PROGRESS').length;
+    const duplicateSuspected = incidents.filter((i) => i.status === 'DUPLICATE_SUSPECTED').length;
+    const verifiedIncidents = incidents.filter((i) => i.status === 'VERIFIED').length;
+    const assignedIncidents = incidents.filter((i) =>
+      ['ASSIGNED', 'ACCEPTED', 'EN_ROUTE', 'ON_SITE', 'IN_PROGRESS'].includes(i.status)
+    ).length;
+    const pendingResolution = incidents.filter((i) => i.status === 'RESOLVED_PENDING_REVIEW').length;
     const resolvedIncidents = incidents.filter((i) => i.status === 'RESOLVED').length;
+    const rejectedIncidents = incidents.filter((i) => i.status === 'REJECTED').length;
 
-    const reports = await prisma.emergencyReport.findMany();
+    const reports = await prisma.emergencyReport.findMany({ where: scope });
     const totalAffected = reports.reduce((acc, r) => acc + r.peopleAffected, 0);
 
     const responders = await prisma.user.findMany({
-      where: { role: 'FIELD_RESPONDER' },
-      select: { id: true, name: true, phone: true },
+      where: { role: 'FIELD_RESPONDER', ...scope },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        district: true,
+        state: true,
+        assignedIncidents: {
+          where: { status: { in: ['ASSIGNED', 'ACCEPTED', 'EN_ROUTE', 'ON_SITE', 'IN_PROGRESS'] } },
+          select: { id: true, referenceCode: true, title: true, status: true },
+        },
+      },
+      orderBy: { name: 'asc' },
     });
 
-    const hospitals = await prisma.hospital.findMany();
+    const hospitals = await prisma.hospital.findMany({ where: scope });
     const totalAvailableBeds = hospitals.reduce((acc, h) => acc + h.availableBeds, 0);
     const totalAvailableIcu = hospitals.reduce((acc, h) => acc + h.availableIcuBeds, 0);
 
-    const shelters = await prisma.shelter.findMany();
+    const shelters = await prisma.shelter.findMany({ where: scope });
     const totalShelterCapacity = shelters.reduce((acc, s) => acc + s.capacity, 0);
     const totalShelterOccupancy = shelters.reduce((acc, s) => acc + s.currentOccupancy, 0);
 
@@ -44,15 +90,34 @@ export async function getDistrictDashboard(req: AuthRequest, res: Response): Pro
     // not a JeevanGrid-issued warning.
     const official = await queryOfficialAlerts({ district, take: 50 }).catch(() => null);
 
+    const [impactSummary, communityIntelligence, playbookSummary, acknowledgementSummary, satelliteLayers] =
+      await Promise.all([
+        safe(getImpactSummary(district), null, 'impact summary'),
+        safe(getCommunityIntelligence(district), null, 'community intelligence'),
+        safe(getPlaybookSummary(district), null, 'playbook summary'),
+        safe(getAcknowledgementSummary(district), null, 'acknowledgement summary'),
+        safe(listSatelliteLayers(district, 12), [], 'satellite layers'),
+      ]);
+
     res.json({
       district,
+      impactSummary,
+      communityIntelligence,
+      playbookSummary,
+      acknowledgementSummary,
+      satelliteLayers,
       stats: {
         totalIncidents,
         newIncidents,
+        duplicateSuspected,
+        verifiedIncidents,
         assignedIncidents,
+        pendingResolution,
         resolvedIncidents,
+        rejectedIncidents,
         totalAffected,
         availableRespondersCount: responders.length,
+        respondersWithActiveAssignments: responders.filter((r) => r.assignedIncidents.length > 0).length,
         totalAvailableBeds,
         totalAvailableIcu,
         totalShelterCapacity,
@@ -60,7 +125,11 @@ export async function getDistrictDashboard(req: AuthRequest, res: Response): Pro
         activeOfficialWarnings: official ? official.alerts.length : null,
       },
       incidents,
-      responders,
+      responders: responders.map((r) => ({
+        ...r,
+        activeAssignments: r.assignedIncidents.length,
+      })),
+      scope: { district, state },
       hospitals,
       shelters,
       officialAlerts: official ? official.alerts : [],
@@ -97,7 +166,14 @@ export async function getHealthDashboard(req: AuthRequest, res: Response): Promi
       }
     );
 
+    const playbooks = await safe(
+      listPlaybooks({ district: req.user?.district, role: 'HEALTH_OFFICER' }),
+      [],
+      'health playbooks'
+    );
+
     res.json({
+      playbooks,
       summary: {
         totalBeds,
         availableBeds,
@@ -122,7 +198,8 @@ export async function getStateEocDashboard(req: AuthRequest, res: Response): Pro
     // unverified rows must never inflate the SEOC operational picture.
     const official = await queryOfficialAlerts({ take: 200 }).catch(() => null);
     const alerts = official ? official.alerts : [];
-    const incidents = await prisma.incident.findMany();
+    const stateScope = req.user?.state || 'Maharashtra';
+    const incidents = await prisma.incident.findMany({ where: { state: stateScope } });
     const resources = await prisma.resource.findMany();
     const shelters = await prisma.shelter.findMany().catch(() => []);
 
@@ -173,11 +250,22 @@ export async function getStateEocDashboard(req: AuthRequest, res: Response): Pro
       };
     });
 
+    const [communityIntelligence, playbookSummary, impactAssessments, satelliteLayers] = await Promise.all([
+      safe(getCommunityIntelligence(undefined), null, 'state community intelligence'),
+      safe(getPlaybookSummary(undefined), null, 'state playbook summary'),
+      safe(listImpactAssessments(undefined, 8), [], 'state impact assessments'),
+      safe(listSatelliteLayers(undefined, 12), [], 'state satellite layers'),
+    ]);
+
     res.json({
       state: 'Maharashtra',
       activeAlertsCount: alerts.length,
       totalStateIncidents: incidents.length,
       districtComparison,
+      communityIntelligence,
+      playbookSummary,
+      impactAssessments,
+      satelliteLayers,
       resources,
       alerts,
       staleCount: official ? official.staleCount : 0,
@@ -230,11 +318,32 @@ export async function getVolunteerDashboard(req: AuthRequest, res: Response): Pr
       },
     ];
 
+    const district = req.user?.district || 'Mumbai Suburban';
+    const [playbooks, communityReports] = await Promise.all([
+      safe(listPlaybooks({ district, role: 'COMMUNITY_VOLUNTEER' }), [], 'volunteer playbooks'),
+      safe(
+        prisma.emergencyReport.findMany({
+          where: {
+            district,
+            verificationStatus: { in: ['UNVERIFIED', 'CORROBORATED', 'DUPLICATE_SUSPECTED'] },
+            createdAt: { gte: new Date(Date.now() - 48 * 60 * 60 * 1000) },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 12,
+          include: { incident: { include: { assignedTo: { select: { name: true } } } } },
+        }),
+        [],
+        'volunteer community reports'
+      ),
+    ]);
+
     res.json({
       volunteerName: req.user?.name || 'Community Volunteer',
       assignedTasks: communityTasks,
       totalCompleted: 14,
       hoursContributed: 38,
+      playbooks,
+      communityReports: communityReports.map((r) => shapeReportForViewer(r, 'COMMUNITY_VOLUNTEER', false)),
     });
   } catch (error) {
     console.error('Volunteer dashboard error:', error);

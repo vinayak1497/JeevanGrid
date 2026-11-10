@@ -3,88 +3,407 @@
 @tailwind utilities;
 
 @layer base {
-  html, body {
+  :root {
+    /* Layout metrics shared between CSS and components so nothing can drift
+       and overlap. Header is sticky on desktop, a compact bar on mobile. */
+    --jg-header-h: 4rem;
+    --jg-safe-top: env(safe-area-inset-top, 0px);
+    --jg-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --jg-safe-left: env(safe-area-inset-left, 0px);
+    --jg-safe-right: env(safe-area-inset-right, 0px);
+    --jg-fab-space: 0rem;
+
+    /* Layering scale. Every fixed/absolute surface picks a value here so
+       nothing can accidentally paint over the emergency modal. */
+    --jg-z-header: 90;
+    --jg-z-fab: 100;
+    --jg-z-sheet: 120;
+    --jg-z-drawer: 130;
+    --jg-z-modal: 200;
+    --jg-z-toast: 300;
+  }
+
+  @media (min-width: 640px) {
+    :root {
+      --jg-header-h: 4.5rem;
+    }
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    /* Never let a wide child create a sideways scrollbar on a phone. */
+    overflow-x: hidden;
+  }
+
+  html,
+  body {
     margin: 0;
     padding: 0;
-    background-color: #f9f9ff;
-    color: #111c2d;
+    background-color: #f6f9fb;
+    color: #0b1720;
+    min-height: 100%;
+    overflow-x: hidden;
+    /* Only the shells lock overscroll; the page itself keeps pull-to-refresh. */
     /* Indic-script-safe stack: Devanagari (hi/mr), Gujarati, Bengali/Assamese, Latin fallback (spec §21) */
-    font-family: 'Inter', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Gujarati', 'Noto Sans Bengali', system-ui, sans-serif;
+    font-family: 'Inter', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Gujarati', 'Noto Sans Bengali', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   /* Per-language rendering hints — browser picks correct glyph variants */
-  html[lang="hi"] body, html[lang="mr"] body {
+  html[lang='hi'] body,
+  html[lang='mr'] body {
     font-family: 'Inter', 'Noto Sans Devanagari', 'Noto Sans', system-ui, sans-serif;
   }
-  html[lang="gu"] body {
+  html[lang='gu'] body {
     font-family: 'Inter', 'Noto Sans Gujarati', 'Noto Sans', system-ui, sans-serif;
   }
-  html[lang="as"] body {
+  html[lang='as'] body {
     font-family: 'Inter', 'Noto Sans Bengali', 'Noto Sans', system-ui, sans-serif;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    /* Long single words (place names, URLs, reference codes) must never push
+       the layout wider than the viewport. */
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  p,
+  span,
+  li,
+  td,
+  th,
+  label,
+  button,
+  a {
+    overflow-wrap: break-word;
+  }
+
+  /* Inputs at least 16px on mobile so iOS does not zoom the viewport.
+     This lives in the utilities layer so it beats per-element `text-xs`
+     utilities, which are what most form controls carry. */
+  @media (max-width: 639px) {
+    input,
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+  }
+
+  /* Focus: visible, consistent, and never removed. */
+  :focus-visible {
+    outline: 2px solid #11615c;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Kill the blue tap flash on iOS; it overlaps our own press states. */
+  button,
+  a,
+  [role='button'] {
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
-/* Hide scrollbar for clean carousels while keeping functionality */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Material Symbols settings */
-.material-symbols-outlined {
-  font-variation-settings:
-    'FILL' 0,
-    'wght' 400,
-    'GRAD' 0,
-    'opsz' 24;
-  vertical-align: middle;
-}
-
-/* Leaflet container fixes */
-.leaflet-container {
-  width: 100%;
-  height: 100%;
-  border-radius: 0.75rem;
-  z-index: 10;
-}
-
-/* Tabular numerals for data metrics */
-.tnum {
-  font-variant-numeric: tabular-nums;
-}
-
-/* Hero background carousel: smooth crossfade + subtle Ken Burns effect */
-.hero-bg-layer {
-  will-change: opacity, transform;
-  backface-visibility: hidden;
-}
-
-.hero-kenburns {
-  animation: hero-kenburns 6s ease-out forwards;
-  will-change: transform;
-}
-
-@keyframes hero-kenburns {
-  0% {
-    transform: scale(1) translate(0, 0);
+@layer components {
+  /* ---------------------------------------------------------------------
+     Page shell — every route renders inside this so the sticky header can
+     never overlap page content and the floating assistant can never sit on
+     top of it.
+     --------------------------------------------------------------------- */
+  .jg-page {
+    width: 100%;
+    max-width: 100%;
+    padding-top: calc(var(--jg-header-h) + var(--jg-safe-top) + 0.75rem);
+    padding-left: max(1rem, var(--jg-safe-left));
+    padding-right: max(1rem, var(--jg-safe-right));
   }
-  100% {
-    transform: scale(1.12) translate(-1.5%, -1.5%);
+
+  /* The fixed header itself must clear the notch / status bar. */
+  .jg-header-bar {
+    padding-top: var(--jg-safe-top);
+  }
+
+  .jg-header-inner {
+    height: var(--jg-header-h);
+  }
+
+  .jg-page-flush {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .jg-container {
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+  }
+
+  /* Reserve room at the bottom of pages that show the assistant orb so the
+     last row of content stays tappable. */
+  .jg-has-fab {
+    padding-bottom: calc(5.5rem + var(--jg-safe-bottom));
+  }
+
+  @media (min-width: 640px) {
+    .jg-has-fab {
+      padding-bottom: calc(1.5rem + var(--jg-safe-bottom));
+    }
+  }
+
+  /* ---------------------------------------------------------------------
+     Surfaces
+     --------------------------------------------------------------------- */
+  .jg-card {
+    @apply rounded-2xl bg-surface-container-lowest border border-outline-variant/45 shadow-sm;
+  }
+
+  .jg-card-quiet {
+    @apply rounded-2xl bg-surface-container-low border border-outline-variant/40;
+  }
+
+  .jg-panel {
+    @apply rounded-2xl bg-surface-container-lowest border border-outline-variant/45 shadow-md overflow-hidden;
+  }
+
+  /* Frosted bar used by the header and floating sheets. */
+  .jg-glass {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(18px) saturate(1.4);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  }
+
+  .jg-glass-strong {
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(24px) saturate(1.5);
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  }
+
+  /* ---------------------------------------------------------------------
+     Interaction targets
+     --------------------------------------------------------------------- */
+  .jg-tap {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .jg-icon-button {
+    @apply inline-flex items-center justify-center rounded-xl text-on-surface-variant transition-all duration-200 ease-out-expo;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .jg-icon-button:hover {
+    @apply bg-surface-container text-on-surface;
+  }
+
+  .jg-icon-button:active {
+    transform: scale(0.94);
+  }
+
+  /* Primary action — the single loudest control on any screen. */
+  .jg-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 min-h-[44px] font-label-lg text-label-lg font-semibold transition-all duration-200 ease-out-expo select-none;
+  }
+
+  .jg-button:active {
+    transform: translateY(1px) scale(0.985);
+  }
+
+  .jg-button-primary {
+    @apply jg-button bg-primary text-on-primary shadow-sm hover:shadow-md hover:bg-primary-container active:bg-primary;
+  }
+
+  .jg-button-secondary {
+    @apply jg-button bg-surface-container text-on-surface border border-outline-variant/50 hover:bg-surface-container-high active:bg-surface-container-highest;
+  }
+
+  .jg-button-danger {
+    @apply jg-button bg-error text-on-error shadow-sm hover:brightness-110 active:brightness-95;
+  }
+
+  .jg-button-ghost {
+    @apply jg-button text-on-surface-variant hover:bg-surface-container hover:text-on-surface;
+  }
+
+  /* ---------------------------------------------------------------------
+     Live signal — used only for things happening right now.
+     --------------------------------------------------------------------- */
+  .jg-signal {
+    @apply relative inline-flex h-2 w-2 shrink-0 rounded-full;
+  }
+
+  .jg-signal::after {
+    content: '';
+    @apply absolute inset-0 rounded-full bg-signal-live;
+    animation: signal-pulse 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  }
+
+  /* ---------------------------------------------------------------------
+     Data display
+     --------------------------------------------------------------------- */
+  .jg-metric {
+    @apply font-code-num text-code-num font-semibold tracking-tight text-on-surface;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .jg-eyebrow {
+    @apply font-label-sm text-label-sm uppercase tracking-[0.14em] font-bold;
+  }
+
+  /* Reference codes / long IDs must never widen their row. */
+  .jg-code {
+    @apply font-code-num text-code-num font-semibold tracking-tight;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Horizontal scrollers that snap on mobile. */
+  .jg-snap-x {
+    @apply flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .jg-snap-x::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Shimmering skeleton block. */
+  .jg-skeleton {
+    @apply relative overflow-hidden rounded-lg bg-surface-container;
+  }
+
+  .jg-skeleton::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.65),
+      transparent
+    );
+    animation: shimmer 1.8s infinite;
+  }
+
+  /* ---------------------------------------------------------------------
+     Scroll reveal. Uses the native scroll-driven animation timeline so the
+     effect costs no JavaScript and no layout measurement. Browsers without
+     support simply render the content immediately.
+     --------------------------------------------------------------------- */
+  @keyframes jg-reveal-in {
+    from {
+      opacity: 0;
+      transform: translateY(22px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @supports (animation-timeline: view()) {
+    .jg-reveal {
+      animation: jg-reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 16%;
+    }
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+@layer utilities {
+  /* Hide scrollbar for clean carousels while keeping functionality */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Material Symbols settings */
+  .material-symbols-outlined {
+    font-variation-settings:
+      'FILL' 0,
+      'wght' 400,
+      'GRAD' 0,
+      'opsz' 24;
+    vertical-align: middle;
+  }
+
+  /* Leaflet container fixes */
+  .leaflet-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 1rem;
+    z-index: 10;
+    /* Leaflet controls are thumb-sized on touch; enlarge them for mobile. */
+    font: inherit;
+  }
+
+  @media (max-width: 639px) {
+    .leaflet-bar a,
+    .leaflet-bar a:hover {
+      width: 36px;
+      height: 36px;
+      line-height: 36px;
+      font-size: 18px;
+    }
+    .leaflet-control-attribution {
+      font-size: 9px;
+    }
+  }
+
+  /* Tabular numerals for data metrics */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Hero background carousel: smooth crossfade + subtle Ken Burns effect */
+  .hero-bg-layer {
+    will-change: opacity, transform;
+    backface-visibility: hidden;
+  }
+
+  .hero-kenburns {
+    animation: hero-kenburns 6s ease-out forwards;
+    will-change: transform;
+  }
+
+  @keyframes hero-kenburns {
+    0% {
+      transform: scale(1) translate(0, 0);
+    }
+    100% {
+      transform: scale(1.12) translate(-1.5%, -1.5%);
+    }
+  }
+
+  /* Respect the OS setting. Every decorative animation in the app is
+     decorative, so this collapses them to a single frame. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    /* Scroll-driven reveals must not hide content when motion is reduced. */
+    .jg-reveal {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
   }
 }
