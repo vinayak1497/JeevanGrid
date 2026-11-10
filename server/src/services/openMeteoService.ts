@@ -53,16 +53,42 @@ function wmoToLabel(code: number): string {
   return 'Partly Cloudy';
 }
 
-async function fetchJson(url: string, timeoutMs = 9000): Promise<any> {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'JeevanGrid-DataEngine/1.0' } });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
-  } finally {
-    clearTimeout(timer);
+async function fetchJson(url: string, timeoutMs = 9000, retries = 2): Promise<any> {
+  let lastError: any;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+      try {
+        const res = await fetch(url, {
+          signal: ctrl.signal,
+          headers: {
+            'User-Agent': 'JeevanGrid-DataEngine/1.0 (civic-safety-info)',
+            Accept: 'application/json',
+          },
+        });
+        if (!res.ok) {
+          // 429 = rate limit; retry with exponential backoff
+          if (attempt < retries && res.status === 429) {
+            const delay = 1000 * Math.pow(2, attempt); // 1s, 2s
+            await new Promise(r => setTimeout(r, delay));
+            continue;
+          }
+          throw new Error(`HTTP ${res.status}`);
+        }
+        return await res.json();
+      } finally {
+        clearTimeout(timer);
+      }
+    } catch (error) {
+      lastError = error;
+      if (attempt < retries) {
+        const delay = 1000 * Math.pow(2, attempt);
+        await new Promise(r => setTimeout(r, delay));
+      }
+    }
   }
+  throw lastError;
 }
 
 /**

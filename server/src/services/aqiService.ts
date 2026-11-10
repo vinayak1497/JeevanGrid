@@ -16,18 +16,43 @@ interface AqiData {
 const aqiCache = new Map<string, { data: AqiData; timestamp: number }>();
 const CACHE_TTL_MS = 15 * 60 * 1000;
 
+/** Brief negative-cache so a rate-limited datacenter IP doesn't hammer the
+  * Open-Meteo AQ endpoint on every request — cache the "unavailable" result
+  * for 2 minutes to let the IP's rate-limit window reset. */
+const AQ_NEGATIVE_TTL_MS = 2 * 60 * 1000;
+const aqiNegativeCache = new Map<string, { ts: number }>();
+
 export class AqiService {
   public async getAqiForLocation(locationQuery: string = 'Mumbai'): Promise<AqiData> {
     const normalized = locationQuery.trim().toLowerCase();
 
+    // 1. Quick check: real cache (15 min)
     const cached = aqiCache.get(normalized);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       return cached.data;
     }
 
+    // 2. Negative cache: if we recently failed, wait before retrying so the
+    //    Open-Meteo shared-IP rate limit can reset. 2 min cooldown.
+    const neg = aqiNegativeCache.get(normalized);
+    if (neg && Date.now() - neg.ts < AQ_NEGATIVE_TTL_MS) {
+      // Return the previously-unavailable result without re-querying
+      return {
+        location: `${(cached as any)?.location || 'Mumbai'}, Mumbai Suburban`,
+        station: 'Live AQI feed unreachable',
+        aqi: 0,
+        status: 'Moderate',
+        pm25: 0,
+        pm10: 0,
+        advisory: 'Live air-quality feed unreachable right now. Follow CPCB bulletins for health guidance.',
+        isDemoData: true,
+        lastUpdated: new Date().toISOString(),
+      };
+    }
+
     const resolved = await geoService.resolveLocationLive(locationQuery);
 
-    // 1. Live observation: Open-Meteo Air Quality (free, CAMS-based, no key)
+    // 3. Live observation: Open-Meteo Air Quality (free, CAMS-based, no key)
     try {
       const live = await openMeteoService.getCurrentAirQualityForCoords(resolved.lat, resolved.lng);
       if (live) {
@@ -43,14 +68,14 @@ export class AqiService {
           lastUpdated: new Date().toISOString(),
         };
         aqiCache.set(normalized, { data, timestamp: Date.now() });
+        aqiNegativeCache.delete(normalized); // clear negative cache on success
         return data;
       }
     } catch (e) {
       console.warn('Open-Meteo live AQI failed, using regional fallback:', e);
     }
 
-    // All live feeds failed: honest unavailable marker for the ACTUAL
-    // requested place — never another city's demo readings.
+    // 4. All live feeds failed: honest unavailable marker
     const data: AqiData = {
       location: `${resolved.city}, ${resolved.district}`,
       station: 'Live AQI feed unreachable',
@@ -63,7 +88,9 @@ export class AqiService {
       lastUpdated: new Date().toISOString(),
     };
 
+    // Cache both the unavailable result and reset the negative cooldown timer
     aqiCache.set(normalized, { data, timestamp: Date.now() });
+    aqiNegativeCache.set(normalized, { ts: Date.now() });
     return data;
   }
 
